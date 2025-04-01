@@ -19,11 +19,32 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL  
     networks:
       - iot
-  
+
+  api-gateway:
+    build: ./api_gateway/
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
+      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
+    depends_on:
+      - kafka
+    networks:
+      - iot
+  payment-gateway:
+    build: ./payment_gateway/
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - client_id=${client_id}
+      - client_secret=${client_secret}
+      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
+      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
+    depends_on:
+      - kafka
+    networks:
+      - iot
+
 networks:
   iot:
     driver: bridge
-  
-
-
-    
