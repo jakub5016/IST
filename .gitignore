@@ -1,4 +1,5 @@
 __pycache__
-.venv
 migrations
-.env
+*.env
+*.venv
+__pycache__
