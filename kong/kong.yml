@@ -1,0 +1,39 @@
+_format_version: "3.0"
+
+services:
+  - name: auth-service
+    url: "http://auth:8082"
+    routes:
+      - name: auth-route
+        paths:
+          - /auth
+  - name: payment-service
+    url: "http://payment_service:8088"
+    routes:
+      - name: payment-route
+        paths:
+          - /payment
+        
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+  - name: payu
+    url: "http://payu:8089"
+    routes:
+      - name: payu-route
+        paths:
+          - /payu
+        
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+consumers:
+  - username: loginuser
+jwt_secrets:
+  - consumer: loginuser
+    secret: "TOO MANY SECRETS"
