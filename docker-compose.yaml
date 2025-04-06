@@ -44,7 +44,20 @@ services:
       - kafka
     networks:
       - iot
-
+  auth-service:
+    build: ./auth/
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - client_id=${client_id}
+      - client_secret=${client_secret}
+      - REQUEST_TOPIC_REGISTER=${REQUEST_TOPIC_REGISTER}
+      - RESPONSE_TOPIC_REGISTER=${RESPONSE_TOPIC_REGISTER}
+      - REQUSET_TOPIC_AUTH=${REQUSET_TOPIC_AUTH}
+      - RESPONSE_TOPIC_AUTH=${RESPONSE_TOPIC_AUTH}
+    depends_on:
+      - kafka
+    networks:
+      - iot
 networks:
   iot:
     driver: bridge
