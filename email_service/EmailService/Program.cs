@@ -40,6 +40,11 @@ builder.Services.AddMassTransit(x =>
                 e.UseRawJsonDeserializer();
                 e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
                 e.ConfigureConsumer<SendWelcomeEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
 
             });
         });
