@@ -1,0 +1,30 @@
+_format_version: "3.0"
+
+services:
+  - name: auth-service
+    url: "http://auth:8082"
+    routes:
+      - name: auth-route
+        paths:
+          - /auth
+        
+
+  - name: api-service
+    url: "http://api:8081"
+    routes:
+      - name: api-route
+        paths:
+          - /api
+        
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+
+consumers:
+  - username: loginuser
+jwt_secrets:
+  - consumer: loginuser
+    secret: "TOO MANY SECRETS"

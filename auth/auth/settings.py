@@ -4,8 +4,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-4ng#n&jls)g25n1iuj_jlkb9o2c6%@$&doyar%3r@you+3v@5h"
 DEBUG = True
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['auth']
 
 # Application definition
 
@@ -16,6 +15,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'rest_framework',
+    'rest_framework.authtoken',
     'users',
 ]
 
@@ -56,7 +57,7 @@ DATABASES = {
         'NAME': os.environ.get('DATABASE_NAME', 'auth_db'),
         'USER': os.environ.get('DATABASE_USER', 'auth_user'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'secret'),
-        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
+        'HOST': os.environ.get('DATABASE_HOST', 'db'),
         'PORT': os.environ.get('DATABASE_PORT', '5432'),
     }
 }
@@ -104,3 +105,9 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}

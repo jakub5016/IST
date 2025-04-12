@@ -1,7 +1,8 @@
 import uuid
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.openapi.utils import get_openapi
 import time
+from models import Credentials
 from kafka_handle import create_topic, create_producer, create_consumer
 import logging
 import os
@@ -14,9 +15,6 @@ RESPONSE_TOPIC_ORDERS =  os.getenv("REQUEST_TOPIC_PAYMENT", "orders")
 
 @app.post('/add_payment_request')
 def payment_request():
-    create_topic(REQUEST_TOPIC_PAYMENT)
-    create_topic(RESPONSE_TOPIC_ORDERS)
-
     correlation_id = str(uuid.uuid4())
     test_message = {"message": "Add payment", "correlation_id": correlation_id}
 
@@ -66,12 +64,3 @@ def kafka_healthcheck():
     consumer.close()
     
     raise HTTPException(status_code=500, detail="Kafka message consumption failed")
-
-@app.get("/openapi.json", include_in_schema=False)
-def get_open_api_endpoint():
-    return get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-    )
