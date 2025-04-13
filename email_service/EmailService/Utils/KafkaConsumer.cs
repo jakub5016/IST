@@ -27,7 +27,7 @@ namespace EmailService.Utils
                 };
 
                 var consumer = new ConsumerBuilder<Ignore, T>(config)
-                    .SetValueDeserializer(new JsonDeserializer<T>())
+                    .SetValueDeserializer(new EventDeserializer<T>())
                     .Build();
 
                 consumer.Subscribe(topic);

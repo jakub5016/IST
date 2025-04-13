@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace EmailService.Consumer
 {
-    public class JsonDeserializer<T> : IDeserializer<T>
+    public class EventDeserializer<T> : IDeserializer<T>
     {
         public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
         {

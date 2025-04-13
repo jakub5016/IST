@@ -6,6 +6,7 @@ using EmailService.Events;
 using EmailService.TemplateLoader;
 using EmailService.Utils;
 using MassTransit;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,5 +49,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/health", () => new { status = "healthy" });
+
 
 app.Run();
