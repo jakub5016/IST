@@ -18,10 +18,10 @@ namespace EmailService.EmailSender
             message.To.Add(new MailboxAddress(to,to));
             message.Subject = emailContent.Subject;
             message.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = emailContent.Content }; 
-            
+ 
             using var client = new SmtpClient();
             client.Connect(_options.ServerAddress, _options.Port, false);
-            client.Authenticate(_options.Username, _options.Password);
+            client.Authenticate(_options.Email, _options.Password);
             await client.SendAsync(message);
             client.Disconnect(true);
         }

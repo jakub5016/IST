@@ -24,8 +24,9 @@ namespace EmailService.Consumers
                 var emailContent = context.Message.GetEmailMessage(content);
                 await _emailSender.SendEmailAsync(context.Message.Email, emailContent);
             }
-            catch (Exception)
+            catch (Exception ex )
             {
+                Console.WriteLine(ex.Message);
             }
         }
     }

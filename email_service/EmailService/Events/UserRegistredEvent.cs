@@ -1,4 +1,5 @@
 ﻿using EmailService.Models;
+using System.Text.Json.Serialization;
 
 namespace EmailService.Events
 {
