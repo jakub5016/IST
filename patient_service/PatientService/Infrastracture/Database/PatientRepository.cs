@@ -1,4 +1,5 @@
-﻿using PatientService.Domain;
+﻿using Microsoft.EntityFrameworkCore;
+using PatientService.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,27 @@ namespace PatientService.Infrastracture.Database
 {
     public class PatientRepository : IPacientRepository
     {
-        public Task AddPatient(Patient patient)
+        private readonly PatientContext _context;
+
+        public PatientRepository(PatientContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task DeletePatientAsync(Guid id)
+        public async Task AddPatient(Patient patient)
         {
-            throw new NotImplementedException();
+            await _context.Patients.AddAsync(patient);
         }
 
-        public Task<Patient> GetPatientAsync(Guid id)
+        public void DeletePatientAsync(Patient patient)
         {
-            throw new NotImplementedException();
+            _context.Patients.Remove(patient);
+
+        }
+
+        public async Task<Patient?> GetPatientAsync(Guid id)
+        {
+            return await _context.Patients.FirstOrDefaultAsync(x => x.Id == id);
         }
     }
 }

@@ -1,21 +1,21 @@
 ﻿using Application.Shared;
 using MassTransit;
+using PatientService.Application.Command.ConfirmNumber;
 using PatientService.Domain;
 
-namespace PatientService.Application.Command.ConfirmPatientIdentity
+namespace PatientService.Application.Command.ConfirmPatientNumber
 {
-    public class ConfirmIdentityCommandHandler : IConsumer<ConfirmIdentityCommand>
+    public class ConfirmNumberCommandHandler : IConsumer<ConfirmNumberCommand>
     {
         private readonly IPacientRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
-
-        public ConfirmIdentityCommandHandler(IPacientRepository repository, IUnitOfWork unitOfWork)
+        public ConfirmNumberCommandHandler(IPacientRepository patientRepository, IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _repository = patientRepository;
             _unitOfWork = unitOfWork;
         }
 
-        public async Task Consume(ConsumeContext<ConfirmIdentityCommand> context)
+        public async Task Consume(ConsumeContext<ConfirmNumberCommand> context)
         {
             var req = context.Message;
             try
@@ -25,13 +25,15 @@ namespace PatientService.Application.Command.ConfirmPatientIdentity
                 {
                     return;
                 }
-                patient.ConfirmIdentity();
+                patient.ConfirmPhoneNumber();
                 await _unitOfWork.SaveChangesAsync();
                 await context.RespondAsync(Result.Success());
+
             }
             catch (Exception ex)
             {
                 await context.RespondAsync(Result.Failure(new Error("", ex.Message)));
+
             }
         }
     }
