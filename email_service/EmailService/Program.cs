@@ -21,24 +21,27 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<SMTPOptions>(builder.Configuration.GetSection(SMTPOptions.SMTP));
 builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection(KafkaOptions.KAFKA));
 
-builder.Services.AddMediator((x) =>
-{
-    x.AddConsumer<SendWelcomeEmailCommandHandler>();
-});
-
 builder.Services.AddScoped<ITemplateLoader, TemplateLoader>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-builder.Services.AddScoped<IKafkaConsumer<UserRegistredEvent>, KafkaConsumer<UserRegistredEvent>>();
-builder.Services.AddHostedService<UserRegistredConsumer>();
 
-builder.Services.AddMassTransit(x => {
+builder.Services.AddMassTransit(x =>
+{
     x.UsingInMemory();
     x.AddRider(rider =>
     {
+        rider.AddConsumer<SendWelcomeEmailCommandHandler>();
         rider.UsingKafka((context, k) =>
         {
             var host = builder.Configuration.GetSection("Kafka").GetSection("ServerAddress").Value;
             k.Host(host);
+            k.TopicEndpoint<UserRegistredEvent>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("UserRegistredTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendWelcomeEmailCommandHandler>(context);
+
+            });
         });
     });
 });
