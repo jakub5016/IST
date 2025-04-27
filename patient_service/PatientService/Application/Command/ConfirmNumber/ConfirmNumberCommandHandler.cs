@@ -2,6 +2,7 @@
 using MassTransit;
 using PatientService.Application.Command.ConfirmNumber;
 using PatientService.Domain;
+using PatientService.Domain.Shared;
 
 namespace PatientService.Application.Command.ConfirmPatientNumber
 {
@@ -23,6 +24,7 @@ namespace PatientService.Application.Command.ConfirmPatientNumber
                 var patient = await _repository.GetPatientAsync(req.PatientId);
                 if (patient is null)
                 {
+                    await context.RespondAsync(Result.Failure(new Error("404", "Not found")));
                     return;
                 }
                 patient.ConfirmPhoneNumber();

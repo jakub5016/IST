@@ -6,8 +6,5 @@ using System.Threading.Tasks;
 
 namespace PatientService.Domain
 {
-    public class PatientRegisteredEvent
-    {
-        public Guid PatientId { get; set; }
-    }
+    public record PatientRegistered(Guid PatientId, string? Email, bool IsAccountRegistred);
 }

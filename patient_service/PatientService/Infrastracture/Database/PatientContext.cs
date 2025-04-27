@@ -12,18 +12,25 @@ namespace PatientService.Infrastracture.Database
     {
         public PatientContext(DbContextOptions<PatientContext> options) : base(options)
         {
+       
         }
         public DbSet<Patient> Patients { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql();
+            optionsBuilder.UseNpgsql(o =>
+            {
+                o.MigrationsHistoryTable("__EFMigrationsHistory", "patient");
+            });
+            
             
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("patient");
+            
             modelBuilder.Entity<Patient>().HasKey(p => p.Id);
-            modelBuilder.Entity<Patient>().HasIndex(p => p.PESEL);
+            modelBuilder.Entity<Patient>().HasIndex(p => p.PESEL).IsUnique(true);
 
         }
     }

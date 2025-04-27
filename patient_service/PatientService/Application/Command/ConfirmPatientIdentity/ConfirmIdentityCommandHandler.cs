@@ -1,6 +1,7 @@
 ﻿using Application.Shared;
 using MassTransit;
 using PatientService.Domain;
+using PatientService.Domain.Shared;
 
 namespace PatientService.Application.Command.ConfirmPatientIdentity
 {
@@ -23,6 +24,7 @@ namespace PatientService.Application.Command.ConfirmPatientIdentity
                 var patient = await _repository.GetPatientAsync(req.PatientId);
                 if (patient is null)
                 {
+                    await context.RespondAsync(Result.Failure(new Error("404", "Not found")));
                     return;
                 }
                 patient.ConfirmIdentity();

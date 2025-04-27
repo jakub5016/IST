@@ -1,6 +1,7 @@
 ﻿using Application.Shared;
 using MassTransit;
 using PatientService.Domain;
+using PatientService.Domain.Shared;
 
 namespace PatientService.Application.Command.Register
 {
@@ -8,10 +9,13 @@ namespace PatientService.Application.Command.Register
     {
         private readonly IPacientRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
-        public RegisterCommandHandler(IPacientRepository repository, IUnitOfWork unitOfWork)
+        private readonly IPublishEndpoint _publishEndpoint;
+
+        public RegisterCommandHandler(IPacientRepository repository, IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task Consume(ConsumeContext<RegisterCommand> context)
@@ -25,6 +29,7 @@ namespace PatientService.Application.Command.Register
                                           req.PhoneNumber);
                 await _repository.AddPatient(patient);
                 await _unitOfWork.SaveChangesAsync();
+                await _publishEndpoint.Publish(new PatientRegistered(patient.Id, req.Email,req.isAccountRegistred));
                 await context.RespondAsync(Result.Success());
             }
             catch (Exception ex) { 

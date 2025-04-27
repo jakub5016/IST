@@ -1,4 +1,4 @@
 ﻿namespace PatientService.Application.Command.UndoRegistration
 {
-    public record UndoRegistrationCommand(Guid PatientId);
+    public record CancelRegistrationCommand(Guid PatientId);
 }

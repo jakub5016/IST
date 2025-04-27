@@ -1,4 +1,5 @@
 services:
+ services:
   kafka:
     image: apache/kafka:latest
     ports:
@@ -17,9 +18,11 @@ services:
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
       - KAFKA_NUM_PARTITIONS=1
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL  
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     networks:
       - iot
-
+      
   api-gateway:
     build: ./api_gateway/
     ports:

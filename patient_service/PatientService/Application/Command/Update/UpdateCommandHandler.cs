@@ -1,6 +1,7 @@
 ﻿using Application.Shared;
 using MassTransit;
 using PatientService.Domain;
+using PatientService.Domain.Shared;
 
 namespace PatientService.Application.Command.Update
 {

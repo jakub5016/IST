@@ -1,4 +1,4 @@
-﻿using PatientService.Domain;
+﻿using PatientService.Domain.Shared;
 using PatientService.Infrastracture.Database;
 
 namespace PatientService.Infrastracture

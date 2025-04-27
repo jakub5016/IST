@@ -1,4 +1,5 @@
 ﻿using Application.Shared;
+using FluentValidation;
 using MassTransit.Mediator;
 using Microsoft.AspNetCore.Mvc;
 using PatientService.Application.Command.ConfirmNumber;
@@ -15,24 +16,43 @@ namespace PatientService.API.API
     public class PatientController : ControllerBase
     {
         private readonly IScopedMediator _mediator;
+        private readonly IValidator<RegisterCommand> _registerValidator;
+        private readonly IValidator<UpdateCommand> _updateValidator;
 
-        public PatientController(IScopedMediator mediator)
+
+        public PatientController(IScopedMediator mediator, IValidator<RegisterCommand> registerValidator, IValidator<UpdateCommand> updateValidator)
         {
             _mediator = mediator;
+            _registerValidator = registerValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> RegisterPatientAsync(RegisterCommand request) 
         {
-            await _mediator.Send(request);
-            return Ok();
+            var validationResults = await _registerValidator.ValidateAsync(request);
+            if (validationResults.IsValid) {
+                await _mediator.Send(request);
+                return Ok();
+            }
+            var errors = validationResults.Errors.Select(x => new { propertyName = x.PropertyName, errorMessage = x.ErrorMessage }).ToList();
+            return BadRequest(errors);
+
+
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdatePatientDataAsync(UpdateCommand request)
         {
-            await _mediator.Send(request);
-            return Ok();
+            var validationResults = await _updateValidator
+                .ValidateAsync(request);
+            if (validationResults.IsValid)
+            {
+                await _mediator.Send(request);
+                return Accepted();
+            }
+            var errors = validationResults.Errors.Select(x => new { propertyName = x.PropertyName, errorMessage = x.ErrorMessage }).ToList();
+            return BadRequest(errors);
         }
 
         [HttpGet("{id}")]
