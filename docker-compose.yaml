@@ -1,34 +1,6 @@
 services:
-  kong:
-    image: kong/kong-gateway:3.8.0.0
-    container_name: kong
-    restart: unless-stopped
-    ports:
-      - "8000:8000"    # Proxy
-      - "8443:8443"    # Proxy (SSL)
-      - "8001:8001"    # Admin
-      - "8002:8002"    # GUI
-      - "8444:8444"    # Admin (SSL)
-    environment:
-      - KONG_DATABASE=off
-      - KONG_DECLARATIVE_CONFIG=/etc/kong/kong.yml
-      - KONG_ADMIN_LISTEN=0.0.0.0:8001
-      - KONG_ADMIN_GUI_URL=http://localhost:8002
-    volumes:
-      - ./kong/kong.yml:/etc/kong/kong.yml:ro
-    networks:
-      - iot
-  consul:
-    image: hashicorp/consul:latest
-    container_name: consul
-    ports:
-      - "8500:8500"
-    command: agent -dev -client=0.0.0.0
-    networks:
-      - iot
   kafka:
     image: apache/kafka:latest
-    container_name: kafka
     ports:
       - "9092:9092"
     environment: 
@@ -42,82 +14,56 @@ services:
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:29093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_NODE_ID=1
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
       - KAFKA_NUM_PARTITIONS=1
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL  
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     networks:
       - iot
-  db:
-    image: postgres:16-alpine
-    container_name: db
-    restart: always
+  api-gateway:
+    build: ./api_gateway/
+    ports:
+      - "8000:8000"
     environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: auth_user
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - postgres_data:/var/lib/postgresql/
+      - KAFKA_BROKER=kafka:29092
+      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
+      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
+    depends_on:
+      - kafka
     networks:
       - iot
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
   payment-gateway:
-    build: ./payment_gateway
-    container_name: payu
+    build: ./payment_gateway/
     environment:
       - KAFKA_BROKER=kafka:29092
       - client_id=${client_id}
       - client_secret=${client_secret}
+      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
+      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
     depends_on:
       - kafka
     networks:
       - iot
-  payment-service:
-    build: ./payment_service
-    container_name: payment_service
+  email-service:
+    build: .\email_service\EmailService\
     ports:
-      - "8088:8088"
-    depends_on:
-      - mongodb
-      - kafka
+      - "6764:8080"
     environment:
-      - MONGO_URI=mongodb://mongodb:27017
-      - KAFKA_BROKER=kafka:29092
-      - client_id=${client_id}
-      - client_secret=${client_secret}
-    networks:
-      - iot
-  mongodb:
-    image: mongo:4.4
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017"
+      - Kafka__ServerAddress=kafka:29092
+      - Kafka__UserRegistredTopic=${REGISTER_RESPONSE_TOPIC}
+      - SMTP__ServerAddress=smtp.gmail.com
+      - SMTP__Email=${SMTP_EMAIL}
+      - SMTP__From=AngioCard
+      - SMTP__Password=${SMTP_PASSWORD}
+      - SMTP__PORT=587
     volumes:
-      - mongo_data:/data/db
-    networks:
-      - iot
-  auth-service:
-    build: ./auth/
-    container_name: auth
-    ports:
-      - "8082:8082"
-    environment:
-      - JWT_SECRET="TOO MANY SECRETS"
+      - ./email_service/EmailService/Templates:/app/Templates
     depends_on:
-      - db
-      - kong
+      - kafka
     networks:
-      - iot
+      - iot     
 
 networks:
   iot:
     driver: bridge
-
-volumes:
-  postgres_data:
-  mongo_data:
