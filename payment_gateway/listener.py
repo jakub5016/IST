@@ -37,10 +37,8 @@ def main():
 
             for message in consumer:
                 logger.info(f"Received message: {message.value}")
-                correlation_id = message.value['correlation_id']
                 new_order = create_order()
-                mess = {"message": new_order, 'correlation_id': correlation_id}
-                print(mess)
+                mess = {"message": new_order}
                 producer.send(RESPONSE_TOPIC_ORDERS, mess)
                 producer.flush()
 

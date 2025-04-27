@@ -33,6 +33,18 @@ services:
       - kafka
     networks:
       - iot
+  payment-gateway:
+    build: ./payment_gateway/
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - client_id=${client_id}
+      - client_secret=${client_secret}
+      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
+      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
+    depends_on:
+      - kafka
+    networks:
+      - iot
   email-service:
     build: .\email_service\EmailService\
     ports:
@@ -51,18 +63,6 @@ services:
       - kafka
     networks:
       - iot     
-  payment-gateway:
-    build: ./payment_gateway/
-    environment:
-      - KAFKA_BROKER=kafka:29092
-      - client_id=${client_id}
-      - client_secret=${client_secret}
-      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
-      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
-    depends_on:
-      - kafka
-    networks:
-      - iot
 
 networks:
   iot:
