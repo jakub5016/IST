@@ -60,6 +60,8 @@ services:
       - iot
   db:
     image: postgres:16-alpine
+    ports: 
+      - "5432:5432"
     container_name: db
     restart: always
     environment:
@@ -134,7 +136,21 @@ services:
       - kafka
     networks:
       - iot     
-
+  patient-service:
+    build: ./patient_service/PatientService/
+    container_name: patient_service
+    ports:
+      - "9696:8080"
+    environment:
+      - Kafka__ServerAddress=kafka:29092
+      - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
+      - Kafka__PatientRegistredTopic=${PATIENT_REGISTRED_TOPIC}
+      - ConnectionStrings__DataConnection=Host=db;Port=5432;Username=auth_user;Password=secret;Database=auth_db
+    depends_on:
+      - kafka
+      - db
+    networks:
+      - iot     
 networks:
   iot:
     driver: bridge

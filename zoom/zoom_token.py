@@ -15,4 +15,3 @@ data = {'grant_type': 'account_credentials', 'account_id': account_id}
 
 response = requests.post(auth_url, headers=headers, data=data, auth=HTTPBasicAuth(client_id, client_secret))
 access_token = response.json().get('access_token')
-

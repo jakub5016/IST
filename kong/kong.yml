@@ -31,6 +31,18 @@ services:
             config:
               claims_to_verify:
                 - exp
+  - name: patient-service
+    url: "http://patient_service:9696"
+    routes:
+      -name: patient-route
+      paths:
+        - /patient
+        
+      plugins:
+        - name: jwt
+          config:
+            claims_to_verify:
+              - exp
 
 consumers:
   - username: loginuser
