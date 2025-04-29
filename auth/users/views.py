@@ -2,7 +2,6 @@ import os
 import jwt
 import datetime
 import requests
-import urllib.parse
 
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
@@ -45,7 +44,7 @@ class RegistrationView(APIView):
                     token = generate_jwt_token(user)
                     kafka_payload = {
                         "username": user.email,
-                        "activationLink": urllib.parse.quote(f"https://localhost:8000/auth/confirm_email?uuid={user.id}"),
+                        "activationLink": f"localhost:8000/auth/confirm_email?uuid={user.id}",
                         "email": user.email
                     }
                     if not send_message(kafka_payload, USER_REGISTER_TOPC):
