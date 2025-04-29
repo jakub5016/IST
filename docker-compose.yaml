@@ -137,7 +137,8 @@ services:
     networks:
       - iot     
   patient-service:
-    build: .\patient_service\PatientService\
+    build: ./patient_service/PatientService/
+    container_name: patient_service
     ports:
       - "9696:8080"
     environment:
