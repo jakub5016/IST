@@ -17,8 +17,11 @@ namespace EmailService.EmailSender
             message.From.Add(new MailboxAddress(_options.From ,_options.Email));
             message.To.Add(new MailboxAddress(to,to));
             message.Subject = emailContent.Subject;
-            message.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = emailContent.Content }; 
- 
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = emailContent.Content
+            };
+            message.Body = bodyBuilder.ToMessageBody();
             using var client = new SmtpClient();
             client.Connect(_options.ServerAddress, _options.Port, false);
             client.Authenticate(_options.Email, _options.Password);
