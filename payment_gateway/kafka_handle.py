@@ -6,30 +6,18 @@ import time
 import logging
 
 from typing import Dict, Set
-from fastapi import HTTPException
-from kafka import KafkaProducer, KafkaConsumer, KafkaAdminClient
-from kafka.admin import NewTopic
-from kafka.errors import KafkaError, TopicAlreadyExistsError, NoBrokersAvailable
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.errors import  NoBrokersAvailable
 from pay import create_order, refund_order
 from db import PAYMENTS_URL_COLLECTION
 
 logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
-PAYMENT_TOPIC = "payment_created"
-REFUND_TOPIC = "refunded_payment"
+PAYMENT_CREATED_TOPIC = os.getenv("PAYMENT_CREATED_TOPIC", "payment_created")
+REFUND_REQUESTED_TOPIC = os.getenv("REFUND_REQUESTED_TOPIC", "refunded_payment")
+REFUND_ERROR_TOPIC = os.getenv("REFUND_ERROR_TOPIC", "refunded_payment_error")
 
-
-def create_topic(topic):
-    try:
-        admin_client = KafkaAdminClient(bootstrap_servers=KAFKA_BROKER)
-        topic_list = [NewTopic(name=topic, num_partitions=1, replication_factor=1)]
-        admin_client.create_topics(new_topics=topic_list, validate_only=False)
-        admin_client.close()
-    except TopicAlreadyExistsError:
-        pass  
-    except KafkaError as e:
-        raise HTTPException(status_code=500, detail=f"Kafka error: {str(e)}")
 
 def create_producer():
     return KafkaProducer(
@@ -50,7 +38,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = create_consumer([REFUND_TOPIC, PAYMENT_TOPIC])
+            consumer = create_consumer([REFUND_REQUESTED_TOPIC, PAYMENT_CREATED_TOPIC])
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -75,7 +63,7 @@ def kafka_consumer_listener(consumer: KafkaConsumer):
             uuid = value.get("uuid")
 
             existing_order = PAYMENTS_URL_COLLECTION.find_one({"uuid": uuid})
-            if topic == PAYMENT_TOPIC:
+            if topic == PAYMENT_CREATED_TOPIC:
                 if existing_order:
                     status = existing_order.get("status")
 
@@ -123,23 +111,23 @@ def kafka_consumer_listener(consumer: KafkaConsumer):
                     print(f"Error creating new order, cannot perform PayU operation")
                     PAYMENTS_URL_COLLECTION.delete_one({"uuid": uuid})
                     send_message({"uuid": uuid}, "payment_url_error")
-            elif (topic == REFUND_TOPIC) and existing_order:
+            elif (topic == REFUND_REQUESTED_TOPIC) and existing_order:
                 status = existing_order.get("status")
                 if status == "url_created":
                     orderId = existing_order.get("orderId")
                     refund_order(orderId)
                 else:
-                    send_message({"uuid": uuid}, "refunded_payment_error")
+                    send_message({"uuid": uuid}, REFUND_ERROR_TOPIC)
 
         except Exception as e:
             print(f"Error processing message {message}: {e}")
 
-            if uuid and topic == PAYMENT_TOPIC:
+            if uuid and topic == PAYMENT_CREATED_TOPIC:
                 PAYMENTS_URL_COLLECTION.delete_one({"uuid": uuid})
                 send_message({"uuid": uuid}, "payment_url_error")
 
-            elif topic == REFUND_TOPIC:
-                send_message({"uuid": uuid}, "refunded_payment_error")
+            elif topic == REFUND_REQUESTED_TOPIC:
+                send_message({"uuid": uuid}, REFUND_ERROR_TOPIC)
 
 
 def start_kafka_listener():

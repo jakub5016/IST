@@ -5,9 +5,9 @@ from requests.auth import HTTPBasicAuth
 
 load_dotenv()
 
-account_id = os.getenv("ACCOUNT_ID")
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
+account_id = os.getenv("ZOOM_ACCOUNT_ID")
+client_id = os.getenv("ZOOM_CLIENT_ID")
+client_secret = os.getenv("ZOOM_CLIENT_SECRET")
 
 auth_url = 'https://zoom.us/oauth/token'
 headers = {'Content-Type': 'application/x-www-form-urlencoded'}

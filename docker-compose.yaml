@@ -42,7 +42,6 @@ services:
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:29093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_NODE_ID=1
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
       - KAFKA_NUM_PARTITIONS=1
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL  
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
@@ -82,7 +81,9 @@ services:
     ports:
       - "8082:8082"
     environment:
+      - KAFKA_BROKER=kafka:29092
       - JWT_SECRET="TOO MANY SECRETS"
+      - USER_REGISTER_TOPC=${REGISTER_RESPONSE_TOPIC}
     networks:
       - iot
   payment-gateway:
@@ -90,10 +91,11 @@ services:
     container_name: payu
     environment:
       - KAFKA_BROKER=kafka:29092
-      - client_id=${client_id}
-      - client_secret=${client_secret}
-      - REQUEST_TOPIC_PAYMENT=${REQUEST_TOPIC_PAYMENT}
-      - RESPONSE_TOPIC_ORDERS=${RESPONSE_TOPIC_ORDERS}
+      - client_id=${PAYU_CLIENT_ID}
+      - client_secret=${PAYU_CLIENT_SECRET}
+      - PAYMENT_CREATED_TOPIC=${PAYMENT_CREATED_TOPIC}
+      - REFUND_REQUESTED_TOPIC=${REFUND_REQUESTED_TOPIC}
+      - REFUND_ERROR_TOPIC=${REFUND_ERROR_TOPIC}
     depends_on:
       - kafka
     networks:
@@ -109,12 +111,13 @@ services:
     environment:
       - MONGO_URI=mongodb://mongodb:27017
       - KAFKA_BROKER=kafka:29092
-      - client_id=${client_id}
-      - client_secret=${client_secret}
+      - PAYMENT_CREATED_TOPIC=${PAYMENT_CREATED_TOPIC}
+      - REFUND_ERROR_TOPIC=${REFUND_ERROR_TOPIC}
     networks:
       - iot
   email-service:
     build: ./email_service/EmailService/
+    container_name: email_service
     ports:
       - "6764:8080"
     environment:

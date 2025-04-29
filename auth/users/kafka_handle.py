@@ -2,8 +2,6 @@ from typing import Dict, Set
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import NoBrokersAvailable
 
-from db import PAYMENTS_COLLECTION
-
 import json
 import os
 import threading
@@ -13,8 +11,6 @@ import logging
 logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
-REFUND_ERROR_TOPIC = os.getenv("REFUND_ERROR_TOPIC", "refunded_payment_error")
-
 
 def create_producer():
     return KafkaProducer(
@@ -35,7 +31,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = create_consumer(REFUND_ERROR_TOPIC)
+            consumer = None
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -54,12 +50,6 @@ def kafka_consumer_listener(consumer):
             value = message.value
             topic = message.topic
 
-            if topic == REFUND_ERROR_TOPIC:
-                uuid = value.get('uuid')
-                PAYMENTS_COLLECTION.update_one(
-                {"uuid": uuid},
-                {"$set": {"refunded": False}}
-            )
         except Exception as e:
             print(f"Error processing message {message}: {e}")
 
@@ -70,6 +60,7 @@ def start_kafka_listener():
 
 def send_message(message:Dict[str, any], topic:str):
     future = PRODUCER.send(topic, message)
+    print(PRODUCER)
     try:
         record_metadata = future.get(timeout=10) 
         logger.info(f"Produced refund message: {message} to topic {record_metadata.topic}")

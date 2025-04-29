@@ -2,18 +2,23 @@ import os
 import jwt
 import datetime
 import requests
+import urllib.parse
 
-from django.views import View
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from django.db import transaction
+from users.models import CustomUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from users.kafka_handle import send_message
 
 from .serializers import RegisterSerializer, LoginSerializer
 
 JWT_ALGORITHM = "HS256"
 JWT_EXP_DELTA_SECONDS = 36000 # 10h
+USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
 
 def generate_jwt_token(user):
     resp = requests.request("GET", "http://kong:8001/consumers/loginuser/jwt").json()
@@ -34,13 +39,29 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            token = generate_jwt_token(user)
+            try:
+                with transaction.atomic():
+                    user = serializer.save()
+                    token = generate_jwt_token(user)
+                    kafka_payload = {
+                        "username": user.email,
+                        "activationLink": urllib.parse.quote(f"https://localhost:8000/auth/confirm_email?uuid={user.id}"),
+                        "email": user.email
+                    }
+                    if not send_message(kafka_payload, USER_REGISTER_TOPC):
+                        raise Exception("Failed to send Kafka message")
+            except Exception as e:
+                return Response(
+                    {"error": str(e)}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             return Response({
                 "token": token,
                 "email": user.email,
-                "is_active": user.is_active
+                "is_active": user.is_active,
+                "uuid" : user.id
             }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -50,16 +71,37 @@ class LoginView(APIView):
             email = serializer.validated_data.get("email")
             password = serializer.validated_data.get("password")
             user = authenticate(request, username=email, password=password)
-            if user:
+            if user and user.is_confirmed_email:
                 token = generate_jwt_token(user)
                 return Response({
                     "token": token,
                     "email": user.email,
                     "is_active": user.is_active
                 }, status=status.HTTP_200_OK)
+            elif not user.is_confirmed_email:
+                return Response({
+                    "message": "Please confirm your email address to log in.",
+                }, status=403 )
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ConfirmEmail(APIView):
+    def get(self, request):
+        uuid = request.query_params.get("uuid")
+        if not uuid:
+            return Response(
+                {"message":"Incorrect data in request"},
+                status=400
+            )
+        try:
+            user = CustomUser.objects.get(id=uuid)
+        except CustomUser.DoesNotExist:
+            return Response({"message":"User not found"}, status=404)
+
+        user.is_confirmed_email = True
+        user.save()
+        return Response({"message":"Email authenticated, Thank you!"}, status=200)
+        
 class HealthCheck(APIView):
     def get(self, request):
         return Response({"message":"healthy"}, status=200)

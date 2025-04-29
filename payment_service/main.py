@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import FastAPI
 from models import Order
@@ -10,6 +11,9 @@ from consul import register_service_with_consul
 from uuid import uuid4
 
 logger = logging.getLogger()
+
+
+PAYMENT_CREATED_TOPIC = os.getenv("PAYMENT_CREATED_TOPIC", "payment_created")
 
 @asynccontextmanager
 async def startup_event(*args, **kwargs):
@@ -44,7 +48,7 @@ async def add_payment(order: Order):
             order_data_serialized.pop("_id")
             method = order_data_serialized.pop("paymentMethod")
             if method == "payu":
-                send_message(order_data, "payment_created")
+                send_message(order_data, PAYMENT_CREATED_TOPIC)
         except Exception as e:
             PAYMENTS_COLLECTION.delete_one({"_id": result.inserted_id})
             raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
