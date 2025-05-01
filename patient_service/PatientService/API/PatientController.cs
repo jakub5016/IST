@@ -47,7 +47,6 @@ namespace PatientService.API.API
                 .Select(x => new { propertyName = x.PropertyName, errorMessage = x.ErrorMessage })
                 .ToList();
             return BadRequest(errors);
-
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> TestCancelRegistration(Guid id)

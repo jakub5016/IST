@@ -34,7 +34,6 @@ builder.Services.AddMediator(x =>
 {
     x.AddConsumer<ConfirmIdentityCommandHandler>();
     x.AddConsumer<ConfirmNumberCommandHandler>();
-    x.AddConsumer<RegisterCommandHandler>();
     x.AddConsumer<UpdateCommandHandler>();
     x.AddConsumer<GetByIdCommandHandler>();
 });
@@ -44,9 +43,11 @@ builder.Services.AddMassTransit(x => {
     x.AddRider(rider =>
     {
         var kafkaOptions = builder.Configuration.GetSection("Kafka").Get<KafkaOptions>();
-        rider.AddProducer<PatientRegistered>(kafkaOptions.PatientRegistredTopic);
+        rider.AddProducer<PatientRegistered>(kafkaOptions.PatientRegisteredTopic);
         rider.AddProducer<UserCreationFailed>(kafkaOptions.UserCreationFailedTopic);
         rider.AddConsumer<CancelRegistrationCommandHandler>();
+        rider.AddConsumer<RegisterCommandHandler>();
+
         rider.UsingKafka((context, k) =>
         {
             k.Host(kafkaOptions.ServerAddress);
@@ -56,6 +57,18 @@ builder.Services.AddMassTransit(x => {
                 e.UseRawJsonDeserializer();
                 e.AutoOffsetReset = AutoOffsetReset.Latest;
                 e.ConfigureConsumer<CancelRegistrationCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
+            k.TopicEndpoint<RegisterCommand>(kafkaOptions.PatientRegisterTopic, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = AutoOffsetReset.Latest;
+                e.ConfigureConsumer<RegisterCommandHandler>(context);
                 e.CreateIfMissing(t =>
                 {
                     t.NumPartitions = 1;

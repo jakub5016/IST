@@ -30,6 +30,7 @@ namespace PatientService.Application.Command.CancelRegistration
                 }
                 _repository.DeletePatientAsync(patient);
                 await _unitOfWork.SaveChangesAsync();
+                await context.RespondAsync(Result.Success());
             }
             catch (Exception ex) {
                 await context.RespondAsync(Result.Failure(new Error("Unexpected", ex.Message)));

@@ -160,6 +160,19 @@ services:
       retries: 3
     command: -p 5434
 
+  patient-register-service:
+    build: ./patient_register_service/PatientRegisterService/
+    container_name: patient_register_service
+    ports:
+      - "9606:8080"
+    environment:
+      - Kafka__ServerAddress=kafka:29092
+      - Kafka__PatientRegisterTopic=${PATIENT_REGISTERED_TOPIC}
+    depends_on:
+      - kafka
+      - db
+    networks:
+      - iot     
   patient-service:
     build: ./patient_service/PatientService/
     container_name: patient
@@ -168,8 +181,9 @@ services:
     environment:
       - Kafka__ServerAddress=kafka:29092
       - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
+      - Kafka__PatientRegisterTopic=${PATIENT_REGISTER_TOPIC}
       - Kafka__PatientRegisteredTopic=${PATIENT_REGISTERED_TOPIC}
-      - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
+      - ConnectionStrings__DataConnection=Host=db;Port=5432;Username=auth_user;Password=secret;Database=auth_db
     depends_on:
       - kafka
       - patient-db
