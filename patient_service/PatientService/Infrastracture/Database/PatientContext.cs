@@ -21,7 +21,7 @@ namespace PatientService.Infrastracture.Database
             optionsBuilder.UseNpgsql(o =>
             {
                 o.MigrationsHistoryTable("__EFMigrationsHistory", "patient");
-            });
+            }).UseSnakeCaseNamingConvention();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
