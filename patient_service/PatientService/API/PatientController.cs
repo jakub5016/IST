@@ -16,7 +16,7 @@ using PatientService.Infrastracture.Messaging.IntegrationEvents;
 
 namespace PatientService.API.API
 {
-    [Route("/")]
+    [Route("")]
     [ApiController]
 
     public class PatientController : ControllerBase

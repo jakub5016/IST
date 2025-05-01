@@ -58,22 +58,22 @@ services:
       - mongo_data:/data/db
     networks:
       - iot
-  db:
+  auth-db:
     image: postgres:16-alpine
-    ports: 
-      - "5432:5432"
-    container_name: db
+    container_name: auth-db    
     restart: always
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: auth_user
       POSTGRES_PASSWORD: secret
     volumes:
-      - postgres_data:/var/lib/postgresql/
+      - postgres_data_auth:/var/lib/postgresql/data
     networks:
       - iot
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: ["CMD", "pg_isready", "-U", "auth_user", "-d", "auth_db"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -136,25 +136,47 @@ services:
       - kafka
     networks:
       - iot     
+  patient-db:
+    image: postgres:16-alpine
+    container_name: patient-db
+    restart: always
+    ports:
+      - "5434:5434"
+    environment:
+      POSTGRES_DB: patientdb
+      POSTGRES_USER: patient_user
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data_patient:/var/lib/postgresql/data
+    networks:
+      - iot
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "patient_user", "-d", "patientdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: -p 5434
+
   patient-service:
     build: ./patient_service/PatientService/
-    container_name: patient_service
+    container_name: patient
     ports:
       - "9696:8080"
     environment:
       - Kafka__ServerAddress=kafka:29092
       - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
-      - Kafka__PatientRegistredTopic=${PATIENT_REGISTRED_TOPIC}
-      - ConnectionStrings__DataConnection=Host=db;Port=5432;Username=auth_user;Password=secret;Database=auth_db
+      - Kafka__PatientRegisteredTopic=${PATIENT_REGISTERED_TOPIC}
+      - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
     depends_on:
       - kafka
-      - db
+      - patient-db
     networks:
-      - iot     
+      - iot
 networks:
   iot:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_auth:
+  postgres_data_patient:
   mongo_data:
