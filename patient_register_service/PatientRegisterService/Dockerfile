@@ -22,4 +22,4 @@ EXPOSE 8081
 
 COPY --from=publish /app/publish .
 
-ENTRYPOINT ["dotnet", "PatientService.dll"]
+ENTRYPOINT ["dotnet", "PatientRegisterService.dll"]

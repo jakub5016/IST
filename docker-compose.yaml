@@ -167,7 +167,7 @@ services:
       - "9606:8080"
     environment:
       - Kafka__ServerAddress=kafka:29092
-      - Kafka__PatientRegisterTopic=${PATIENT_REGISTERED_TOPIC}
+      - Kafka__PatientRegisterTopic=${PATIENT_REGISTER_TOPIC}
     depends_on:
       - kafka
       - db
