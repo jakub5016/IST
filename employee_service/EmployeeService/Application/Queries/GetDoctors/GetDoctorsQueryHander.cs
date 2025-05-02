@@ -1,4 +1,5 @@
 ﻿using EmployeeService.Application.Queries.GetById;
+using EmployeeService.Application.Queries.GetDoctorById;
 using EmployeeService.Application.Queries.GetEmployees;
 using EmployeeService.Core;
 using EmployeeService.Domain;
@@ -23,25 +24,27 @@ namespace EmployeeService.Application.Queries.GetDoctors
                 var employees = await _repository.GetAllDoctors();
                 if (employees == null)
                 {
-                    await context.RespondAsync(Result<GetEmployeesResponse>.Failure(Error.NotFound));
+                    await context.RespondAsync(Result<GetDoctorsResponse>.Failure(Error.NotFound));
                     return;
                 }
-                var response = new GetEmployeesResponse(
+                var response = new GetDoctorsResponse(
                     [.. employees
-                    .Select(x => new GetEmployeeResponse(
+                    .Select(x => new GetDoctorResponse(
                         x.FirstName,
                         x.LastName,
                         x.Email,
                         x.PhoneNumber,
                         x.ShiftStartTime,
-                        x.ShiftEndTime))
+                        x.ShiftEndTime,
+                        x.Doctor.RoomNumber,
+                        x.Doctor.Specialization))
                     ]
                 );
-                await context.RespondAsync(Result<GetEmployeesResponse>.Success(response));
+                await context.RespondAsync(Result<GetDoctorsResponse>.Success(response));
             }
             catch (Exception ex)
             {
-                await context.RespondAsync(Result<GetEmployeesResponse>.Failure(Error.SomethingWentWrong(ex.Message)));
+                await context.RespondAsync(Result<GetDoctorsResponse>.Failure(Error.SomethingWentWrong(ex.Message)));
             }
         
         }

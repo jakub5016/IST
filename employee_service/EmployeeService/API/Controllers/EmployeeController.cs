@@ -2,6 +2,7 @@
 using EmployeeService.Application.Commands.Dismiss;
 using EmployeeService.Application.Commands.Hire;
 using EmployeeService.Application.Queries.GetById;
+using EmployeeService.Application.Queries.GetDoctorById;
 using EmployeeService.Application.Queries.GetDoctors;
 using EmployeeService.Application.Queries.GetEmployees;
 using EmployeeService.Core;
@@ -59,9 +60,17 @@ namespace EmployeeService.API.Controllers
         [HttpGet("doctor/all")]
         public async Task<IActionResult> GetDoctors() {
             var client = _mediator.CreateRequestClient<GetDoctorsQuery>();
-            var response = await client.GetResponse<Result<GetEmployeesResponse>>(new GetDoctorsQuery());
+            var response = await client.GetResponse<Result<GetDoctorsResponse>>(new GetDoctorsQuery());
             return GetResponse(response);
         }
+        [HttpGet("doctor/{id}")]
+        public async Task<IActionResult> GetDoctors(Guid id)
+        {
+            var client = _mediator.CreateRequestClient<GetDoctorByIdQuery>();
+            var response = await client.GetResponse<Result<GetDoctorResponse>>(new GetDoctorByIdQuery(id));
+            return GetResponse(response);
+        }
+
         [HttpGet("all")]
         public async Task<IActionResult> GetEmployeesAsync() {
             var client = _mediator.CreateRequestClient<GetEmployeesQuery>();

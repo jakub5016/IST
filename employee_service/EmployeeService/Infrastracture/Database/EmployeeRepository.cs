@@ -24,12 +24,14 @@ namespace EmployeeService.Infrastracture.Database
 
         public async Task<List<Employee>> GetAllDoctors()
         {
-            return await _context.Employee.Where(x => x.Doctor != null).ToListAsync();
+            return await _context.Employee.Include(x => x.Doctor)
+                .Where(x => x.Doctor != null)
+                .ToListAsync();
         }
 
         public async Task<Employee?> GetById(Guid id)
         {
-            return await _context.Employee.FirstOrDefaultAsync(x=>x.Id==id);
+            return await _context.Employee.Include(x=>x.Doctor).FirstOrDefaultAsync(x => x.Id == id); // ToDo: exact without include to another method
         }
         public async Task SaveChangesAsync()
         {
