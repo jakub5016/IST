@@ -16,7 +16,7 @@ logging.basicConfig(filemode='a', filename='kafka_logs.log', level=logging.INFO)
 logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
-PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred") + "_topic"
+PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred")
 
 User = get_user_model()
 

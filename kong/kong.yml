@@ -39,11 +39,18 @@ services:
         paths:
           - /patient
           
-        # plugins:
-        #   - name: jwt
-        #     config:
-        #       claims_to_verify:
-        #         - exp
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+  - name: patient-register-service
+    url: "http://patient_register_service:8080"
+    routes:
+      - name: patient-register-route
+        paths:
+          - /patient_register
 
 consumers:
   - username: loginuser

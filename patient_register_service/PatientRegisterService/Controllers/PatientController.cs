@@ -4,13 +4,13 @@ using PatientRegisterService.Commands.Register;
 
 namespace PatientRegisterService.Controllers
 {
-    [Route("patient")]
+    [Route("")]
     [ApiController]
     public class PatientController(IScopedMediator mediator) : ControllerBase
     {
         private readonly IScopedMediator _mediator = mediator;
 
-        [HttpPost("register")]
+        [HttpPost("")]
         public async Task<IActionResult> RegisterPatientAsync(RegisterCommand request)
         {
             var client = _mediator.CreateRequestClient<RegisterCommand>();

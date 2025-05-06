@@ -182,7 +182,7 @@ services:
       - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
       - Kafka__PatientRegisterTopic=${PATIENT_REGISTER_TOPIC}
       - Kafka__PatientRegisteredTopic=${PATIENT_REGISTERED_TOPIC}
-      - ConnectionStrings__DataConnection=Host=patient-db;Port=5432;Username=patient_user;Password=secret;Database=patientdb
+      - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
     depends_on:
       - kafka
       - patient-db
