@@ -2,7 +2,7 @@ from typing import Dict, Set
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import NoBrokersAvailable
 from django.contrib.auth import get_user_model
-from users.models import ChangePasswordCode
+from users.models import ChangePasswordCode, ROLE_NAMES_LIST
 
 import json
 import os
@@ -17,6 +17,7 @@ logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
 PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred")
+EMPLOYEE_HIRED_TOPIC = os.getenv("EMPLOYEE_HIRED_TOPIC", "employee_hired")
 
 User = get_user_model()
 
@@ -32,7 +33,7 @@ def create_producer():
 
 def create_consumer(topic):
     return KafkaConsumer(
-        topic,
+        *topic,
         bootstrap_servers=KAFKA_BROKER,
         auto_offset_reset="earliest",
         enable_auto_commit=True,
@@ -43,7 +44,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = create_consumer(PATIENT_REGISTERED_TOPIC)
+            consumer = create_consumer([PATIENT_REGISTERED_TOPIC, EMPLOYEE_HIRED_TOPIC])
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -61,20 +62,35 @@ def kafka_consumer_listener(consumer):
         try:
             value = message.value
             topic = message.topic
-
-            if not value.get('isAccountRegistred'):
+            if topic == PATIENT_REGISTERED_TOPIC:
+                if not value.get('isAccountRegistred'):
+                    email = value.get("email")
+                    if email:
+                        if not User.objects.filter(email=email).exists():
+                            random_password = generate_random_password()
+                            user = User.objects.create_user(email=email, password=random_password)
+                            code = ChangePasswordCode.objects.create(value=random.randint(0, 1000), user=user)
+                            logger.info(f"Code {code.value}")
+                        else:
+                            logger.info(f"User with email {email} already exists.")
+                    else:
+                        logger.info("Email is missing in the message.")
+            else:
                 email = value.get("email")
+                role = value.get('role')
+                if role not in ROLE_NAMES_LIST:
+                    logger.info("This role does not exist")
+                    continue
                 if email:
                     if not User.objects.filter(email=email).exists():
                         random_password = generate_random_password()
-                        user = User.objects.create_user(email=email, password=random_password)
+                        user = User.objects.create_user(email=email, password=random_password, role=role)
                         code = ChangePasswordCode.objects.create(value=random.randint(0, 1000), user=user)
                         logger.info(f"Code {code.value}")
                     else:
                         logger.info(f"User with email {email} already exists.")
                 else:
                     logger.info("Email is missing in the message.")
-
         except Exception as e:
             logger.info(f"Error processing message {message}: {e}")
 

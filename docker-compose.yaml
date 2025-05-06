@@ -87,6 +87,7 @@ services:
       - JWT_SECRET="TOO MANY SECRETS"
       - USER_REGISTER_TOPC=${REGISTER_RESPONSE_TOPIC}
       - PATIENT_REGISTERED_TOPIC=${PATIENT_REGISTERED_TOPIC}
+      - EMPLOYEE_HIRED_TOPIC=${EMPLOYEE_HIRED_TOPIC}
     depends_on:
       - auth-db
     networks:
@@ -182,6 +183,21 @@ services:
       - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
       - Kafka__PatientRegisterTopic=${PATIENT_REGISTER_TOPIC}
       - Kafka__PatientRegisteredTopic=${PATIENT_REGISTERED_TOPIC}
+      - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
+    depends_on:
+      - kafka
+      - patient-db
+    networks:
+      - iot
+  employee-service:
+    build: ./employee_service/EmployeeService/
+    container_name: employee
+    ports:
+      - "9666:8080"
+    environment:
+      - Kafka__ServerAddress=kafka:29092
+      - Kafka__EmployeeHiredTopic=${EMPLOYEE_HIRED_TOPIC}
+      - Kafka__EmployeeRegistrationFailedTopic=${EMPLOYEE_REGISTRATION_FAILED_TOPIC}
       - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
     depends_on:
       - kafka
