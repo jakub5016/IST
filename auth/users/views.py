@@ -11,9 +11,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from users.kafka_handle import send_message
+from kafka_handle.kafka_handle import send_message
 
 from .serializers import RegisterSerializer, LoginSerializer
+from .models import ChangePasswordCode
 
 JWT_ALGORITHM = "HS256"
 JWT_EXP_DELTA_SECONDS = 36000 # 10h
@@ -77,6 +78,8 @@ class LoginView(APIView):
                     "email": user.email,
                     "is_active": user.is_active
                 }, status=status.HTTP_200_OK)
+            elif not user:
+                return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
             elif not user.is_confirmed_email:
                 return Response({
                     "message": "Please confirm your email address to log in.",
@@ -100,7 +103,33 @@ class ConfirmEmail(APIView):
         user.is_confirmed_email = True
         user.save()
         return Response({"message":"Email authenticated, Thank you!"}, status=200)
+
+class ChangePassword(APIView):
+    def post(self, request):
+        uuid = request.data.get("uuid")
+        new_password = request.data.get("newPassword")
+        code = request.data.get("code")
+        if not any ([uuid, new_password, code]):
+            return Response(
+                {"message":"Incorrect data in request"},
+                status=400
+        )
+        try:
+            user = CustomUser.objects.get(id=uuid)
+        except CustomUser.DoesNotExist:
+            return Response({"message":"User not found"}, status=404)
         
+        is_code_correct = ChangePasswordCode.objects.filter(user=user, value=int(code))
+        if is_code_correct:
+            user.set_password(new_password)
+            user.is_confirmed_email = True
+            user.is_active = True
+            user.save()
+            is_code_correct.delete()
+        else:
+            return Response({"message": "Code invalid or already used"}, status=401)
+        return Response({"message":"Password changed"}, status=200)
+       
 class HealthCheck(APIView):
     def get(self, request):
         return Response({"message":"healthy"}, status=200)

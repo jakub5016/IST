@@ -7,7 +7,7 @@ namespace PatientService.Application.Command.Register
         public RegisterCommandValidator()
         {
             RuleFor(x => x.isAccountRegistred)
-                .NotEmpty();
+                .NotNull();
 
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty()

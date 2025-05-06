@@ -39,11 +39,11 @@ services:
         paths:
           - /patient
           
-        plugins:
-          - name: jwt
-            config:
-              claims_to_verify:
-                - exp
+        # plugins:
+        #   - name: jwt
+        #     config:
+        #       claims_to_verify:
+        #         - exp
 
 consumers:
   - username: loginuser

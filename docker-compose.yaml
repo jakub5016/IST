@@ -86,6 +86,9 @@ services:
       - KAFKA_BROKER=kafka:29092
       - JWT_SECRET="TOO MANY SECRETS"
       - USER_REGISTER_TOPC=${REGISTER_RESPONSE_TOPIC}
+      - PATIENT_REGISTERED_TOPIC=${PATIENT_REGISTERED_TOPIC}
+    depends_on:
+      - auth-db
     networks:
       - iot
   payment-gateway:
