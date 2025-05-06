@@ -52,6 +52,19 @@ services:
         paths:
           - /patient_register
 
+  - name: employee-service
+    url: "http://employee:8080"
+    routes:
+      - name: employee-service-route
+        paths:
+          - /employee
+
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
 consumers:
   - username: loginuser
 jwt_secrets:

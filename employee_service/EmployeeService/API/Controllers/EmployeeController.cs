@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeService.API.Controllers
 {
-    [Route("employee")]
+    [Route("")]
     [ApiController]
     public class EmployeeController : ControllerBase
     {

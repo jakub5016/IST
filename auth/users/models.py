@@ -2,6 +2,14 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
+ROLE_NAMES = [
+    ("patient", "patient"),
+    ("doctor", "doctor"),
+    ("employee", "employee"),
+]
+
+ROLE_NAMES_LIST = ['patient', 'doctor', 'employee']
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -23,6 +31,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_confirmed_email = models.BooleanField(default=False)
+    role = models.CharField(max_length=16, choices=ROLE_NAMES, default=ROLE_NAMES[0])
 
     objects = CustomUserManager()
 
