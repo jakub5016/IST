@@ -19,6 +19,8 @@ services:
             config:
               claims_to_verify:
                 - exp
+          - name: jwt-to-claims
+
   - name: payu
     url: "http://payu:8089"
     routes:
@@ -31,6 +33,7 @@ services:
             config:
               claims_to_verify:
                 - exp
+          - name: jwt-to-claims
 
   - name: patient-service
     url: "http://patient:8080"
@@ -44,6 +47,7 @@ services:
             config:
               claims_to_verify:
                 - exp
+          - name: jwt-to-claims
 
   - name: patient-register-service
     url: "http://patient_register_service:8080"
@@ -64,6 +68,7 @@ services:
             config:
               claims_to_verify:
                 - exp
+          - name: jwt-to-claims
 
 consumers:
   - username: loginuser
