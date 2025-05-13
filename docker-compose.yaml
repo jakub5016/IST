@@ -58,6 +58,37 @@ services:
       - mongo_data:/data/db
     networks:
       - iot
+  appointments-db:
+    image: postgres:16-alpine
+    container_name: appointments-db
+    restart: always
+    ports:
+      - "5433:5433"
+    environment:
+      POSTGRES_DB: appointments_db
+      POSTGRES_USER: appointments_user
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data_appointments:/var/lib/postgresql/data
+    networks:
+      - iot
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "appointments_user", "-d", "appointments_db" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  appointments-service:
+    build: ./appointmentsv2/
+    container_name: appointments
+    ports:
+      - "8081:8081"
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - NEW_APPOINTMENT_TOPIC=${NEW_APPOINTMENT_TOPIC}
+    depends_on:
+      - appointments-db
+    networks:
+      - iot
   auth-db:
     image: postgres:16-alpine
     container_name: auth-db    
@@ -212,4 +243,5 @@ networks:
 volumes:
   postgres_data_auth:
   postgres_data_patient:
+  postgres_data_appointments:
   mongo_data:
