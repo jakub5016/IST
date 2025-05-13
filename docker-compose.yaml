@@ -1,6 +1,6 @@
 services:
   kong:
-    image: kong/kong-gateway:3.8.0.0
+    build: ./kong
     container_name: kong
     restart: unless-stopped
     ports:
@@ -90,6 +90,7 @@ services:
       - EMPLOYEE_HIRED_TOPIC=${EMPLOYEE_HIRED_TOPIC}
     depends_on:
       - auth-db
+      - email-service
     networks:
       - iot
   payment-gateway:

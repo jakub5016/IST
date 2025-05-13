@@ -27,9 +27,11 @@ def generate_jwt_token(user):
     JWT_SECRET =data['secret']
     JWT_ALGORITHM = data['algorithm']
     payload = {
-        "email": user.email,
         "iss": ISS,
+        "email": user.email,
         "is_active": user.is_active,
+        "is_confirmed_email": user.is_confirmed_email,
+        "role": user.role,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=JWT_EXP_DELTA_SECONDS)
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

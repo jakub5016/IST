@@ -1,7 +1,7 @@
 import logging
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from models import Order
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
@@ -29,8 +29,12 @@ async def startup_event(*args, **kwargs):
 app = FastAPI(lifespan=startup_event)
 
 @app.get("/health")
-def health():
-    return {"status": "healthy"}
+def health(request: Request):
+    incoming = dict(request.headers)
+    return {
+        "status": "healthy",
+        "headers": incoming
+    }
 
 @app.post("/add_payment")
 async def add_payment(order: Order):
@@ -90,3 +94,4 @@ async def refund_payment(payment_uuid: str):
             raise HTTPException(status_code=404, detail="Payment not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    
