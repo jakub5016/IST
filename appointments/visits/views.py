@@ -17,7 +17,6 @@ def healthcheck(request):
 def create_doctor_schedule(request):
     serializer = serializers.DoctorScheduleCreateSerializer(data=request.data)
     if serializer.is_valid():
-        #schedule = crud.create_doctor_schedule(serializer.validated_data)
         DoctorSchedule.objects.create(**serializer.validated_data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -26,7 +25,6 @@ def create_doctor_schedule(request):
 def create_appointment_type(request):
     serializer = serializers.AppointmentTypeCreateSerializer(data=request.data)
     if serializer.is_valid():
-        #appointment_type = crud.create_appointment_type(serializer.validated_data)
         AppointmentType.objects.create(**serializer.validated_data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -35,7 +33,6 @@ def create_appointment_type(request):
 def create_appointment(request):
     serializer = serializers.AppointmentCreateSerializer(data=request.data)
     if serializer.is_valid():
-        #appointment = crud.create_appointment(serializer.validated_data)
         appointment = Appointment.objects.create(**serializer.validated_data)
 
         appointment_type = AppointmentType.objects.get(id=appointment.appointment_type_id)

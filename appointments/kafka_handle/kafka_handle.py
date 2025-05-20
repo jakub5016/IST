@@ -33,7 +33,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = create_consumer(PAYMENT_CREATED_TOPIC)
+            consumer = None
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -45,39 +45,15 @@ def get_consumer_and_producer():
 
 def kafka_consumer_listener(consumer):
     logger.info("Starting Kafka consumer to listen...")
-    for message in consumer:
-        try:
-            value = message.value
-            topic = message.topic
-            logger.info(f"Received message from topic {topic}: {value}")
+    if consumer:
+        for message in consumer:
+            try:
+                value = message.value
+                topic = message.topic
+                logger.info(f"Received message from topic {topic}: {value}")
 
-            if topic == PAYMENT_CREATED_TOPIC:
-                handle_payment_created(value)
-
-        except Exception as e:
-            logger.exception(f"Error processing Kafka message: {e}")
-
-def handle_payment_created(data: Dict):
-    appointment_id = data.get("appointment_id")
-    logger.info(f"Handling payment for appointment ID: {appointment_id}")
-
-    if not appointment_id:
-        logger.warning("No appointment_id in payment message")
-        return
-
-    # db: Session = SessionLocal()
-    # try:
-    #     appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    #     if appointment:
-    #         appointment.status = "oplacona"
-    #         db.commit()
-    #         logger.info(f"Appointment {appointment_id} marked as paid.")
-    #     else:
-    #         logger.warning(f"Appointment {appointment_id} not found.")
-    # except Exception as e:
-    #     logger.exception(f"Failed to update appointment status: {e}")
-    # finally:
-    #     db.close()
+            except Exception as e:
+                logger.exception(f"Error processing Kafka message: {e}")
 
 
 def start_kafka_listener():

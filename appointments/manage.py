@@ -8,7 +8,7 @@ runserver.default_addr = "0.0.0.0"
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'appointmentsv2.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'appointments.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
