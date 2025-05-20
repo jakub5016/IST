@@ -21,6 +21,19 @@ services:
                 - exp
           - name: jwt-to-claims
 
+  - name: appointments-service
+    url: "http://appointments:8081"
+    routes:
+      - name: appointments-route
+        paths:
+          - /appointments
+    # plugins:
+    #   - name: jwt
+    #     config:
+    #       claims_to_verify:
+    #         - exp
+    #   - name: jwt-to-claims
+
   - name: payu
     url: "http://payu:8089"
     routes:
