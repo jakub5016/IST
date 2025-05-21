@@ -14,6 +14,7 @@ namespace DocumentService.Infrastracture.Database
         }
 
         public DbSet<Document> Documents { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(o =>

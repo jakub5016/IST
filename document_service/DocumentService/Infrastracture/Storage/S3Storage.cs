@@ -30,7 +30,7 @@ namespace DocumentService.Infrastracture.Storage
 
         public async Task UploadFile(Stream file, string path)
         {
-            await _s3Client.UploadObjectFromStreamAsync(_awsOptions.BucketName, path, file, new Dictionary<string, object>());
+           await _s3Client.UploadObjectFromStreamAsync(_awsOptions.BucketName, path, file, new Dictionary<string, object>());
         }
     }
 }

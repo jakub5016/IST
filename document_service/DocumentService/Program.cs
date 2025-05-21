@@ -37,21 +37,7 @@ builder.Services.AddMediator(x => {
     x.AddConsumer<GetDocumentQueryHandler>();
     x.AddConsumer<GetDocumentsQueryHandler>();
 });
-builder.Services.AddMassTransit(x =>
-{
-    x.UsingInMemory();
-    x.AddRider(rider =>
-    {
-        var kafkaOptions = builder.Configuration.GetSection("Kafka").Get<KafkaOptions>();
 
-        rider.AddProducer<DocumentCreated>(kafkaOptions.DocumentCreatedTopic);
-
-        rider.UsingKafka((context, k) => {
-            k.Host(kafkaOptions.ServerAddress);
-
-        });
-    });
-});
 builder.Services.Configure<MassTransitHostOptions>(options =>
 {
     options.WaitUntilStarted = true;
@@ -61,11 +47,9 @@ builder.Services.Configure<MassTransitHostOptions>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+
+app.MapOpenApi();
+
 
 using (var scope = app.Services.CreateScope())
 {

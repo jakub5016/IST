@@ -23,7 +23,7 @@ namespace DocumentService.Application.Queries.GetDocuments
                     await context.RespondAsync(Result.Failure(new Error("404", "Not found")));
                     return;
                 }
-                var response = new GetDocumentsResponse([.. documents.Select(x => new GetDocumentResponse(x.AppointmentId, x.Name, x.CreatedDate))]);
+                var response = new GetDocumentsResponse([.. documents.Select(x => new GetDocumentResponse(x.Id, x.Name, x.CreatedDate))]);
                 await context.RespondAsync(Result<GetDocumentsResponse>.Success(response));
             }
             catch (Exception ex) {
