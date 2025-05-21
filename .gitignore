@@ -3,3 +3,4 @@ __pycache__
 *.venv
 email_service/EmailService/appsettings.Development.json
 email_service/EmailService/Properties/launchSettings.json
+document_service/DocumentService/appsettings.Development.json
