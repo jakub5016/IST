@@ -175,6 +175,22 @@ services:
       - kafka
     networks:
       - iot     
+  document-service:
+    build: ./document_service/DocumentService/
+    container_name: document_service
+    ports:
+      - "6868:8080"
+    environment:
+      - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
+      - Storage__BucketName=BucketName
+      - AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS
+      - AWS_SESSION_TOKEN=AWS_SESSION_TOKEN
+      - AWS_REGION=us-east-1
+    depends_on:
+      - patient-db
+    networks:
+      - iot     
   patient-db:
     image: postgres:16-alpine
     container_name: patient-db

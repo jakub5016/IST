@@ -8,13 +8,11 @@ namespace DocumentService.Application.Commands.UploadDocument
     {
         private readonly IDocumentRepository _repository;
         private readonly IFileStorage _storage;
-        private readonly ITopicProducer<DocumentCreated> _publisher;
 
-        public UploadDocumentCommandHandler(IDocumentRepository repository, IFileStorage storage, ITopicProducer<DocumentCreated> publisher)
+        public UploadDocumentCommandHandler(IDocumentRepository repository, IFileStorage storage)
         {
             _repository = repository;
             _storage = storage;
-            _publisher = publisher;
         }
 
         public async Task Consume(ConsumeContext<UploadDocumentCommand> context)
@@ -25,9 +23,7 @@ namespace DocumentService.Application.Commands.UploadDocument
                 var document = new Document(req.AppointmentId, req.Name, DateTime.UtcNow);
                 await _storage.UploadFile(req.File, $"{req.AppointmentId}/${document.Id}");
                 await _repository.AddDocument(document);
-               // await _publisher.Produce(new DocumentCreated()); ;
                 await context.RespondAsync(Result.Success());
-
             }
             catch (Exception ex) {
                 await context.RespondAsync(Result.Failure(new Error("",ex.Message)));
