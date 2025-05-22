@@ -13,7 +13,6 @@ namespace EmailService.EmailSender
         public async Task SendEmailAsync(string to, EmailMessage emailContent)
         {
             var message = new MimeMessage();
-            
             message.From.Add(new MailboxAddress(_options.From ,_options.Email));
             message.To.Add(new MailboxAddress(to,to));
             message.Subject = emailContent.Subject;

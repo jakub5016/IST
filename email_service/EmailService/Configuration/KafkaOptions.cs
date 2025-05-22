@@ -6,6 +6,7 @@
 
         public string ServerAddress { get; set; } = string.Empty;
         public string UserRegistredTopic {  get; set; } = string.Empty;
+        public string ChangePasswordTopic { get; set; } = string.Empty;
 
     }
 }

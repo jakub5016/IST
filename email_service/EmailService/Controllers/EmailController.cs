@@ -16,8 +16,15 @@ namespace EmailService.Controllers
         [HttpPost("sendWelcomeEmail")]
         public async Task<IActionResult> TestSendingWelcomeEmail(string username, string activationLink, string email)
         {
-            var producer = _topicProvider.GetProducer<UserRegistredEvent>(new Uri($"topic:{_options.UserRegistredTopic}"));
-            await producer.Produce(new UserRegistredEvent(username, activationLink, email));
+            var producer = _topicProvider.GetProducer<UserRegistred>(new Uri($"topic:{_options.UserRegistredTopic}"));
+            await producer.Produce(new UserRegistred(username, activationLink, email));
+            return Accepted();
+        }
+        [HttpPost("sendPasswordChangeEmail")]
+        public async Task<IActionResult> TestSendingPasswordChangeEmail([FromQuery] ChangePassword changePassword)
+        {
+            var producer = _topicProvider.GetProducer<ChangePassword>(new Uri($"topic:{_options.ChangePasswordTopic}"));
+            await producer.Produce(changePassword);
             return Accepted();
         }
     }

@@ -1,10 +1,9 @@
+using EmailService.Commands;
 using EmailService.Configuration;
-using EmailService.Consumer;
 using EmailService.Consumers;
 using EmailService.EmailSender;
 using EmailService.Events;
 using EmailService.TemplateLoader;
-using EmailService.Utils;
 using MassTransit;
 using System.Text.Json;
 
@@ -30,16 +29,30 @@ builder.Services.AddMassTransit(x =>
     x.AddRider(rider =>
     {
         rider.AddConsumer<SendWelcomeEmailCommandHandler>();
+        rider.AddConsumer<SendPasswordChangeEmailCommandHandler>();
         rider.UsingKafka((context, k) =>
         {
             var host = builder.Configuration.GetSection("Kafka").GetSection("ServerAddress").Value;
             k.Host(host);
-            k.TopicEndpoint<UserRegistredEvent>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("UserRegistredTopic").Value, "r", e =>
+            k.TopicEndpoint<UserRegistred>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("UserRegistredTopic").Value, "r", e =>
             {
                 e.EnableAutoOffsetStore = true;
                 e.UseRawJsonDeserializer();
                 e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
                 e.ConfigureConsumer<SendWelcomeEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+
+            });
+            k.TopicEndpoint<ChangePassword>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("ChangePasswordTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendPasswordChangeEmailCommandHandler>(context);
                 e.CreateIfMissing(t =>
                 {
                     t.NumPartitions = 1;
