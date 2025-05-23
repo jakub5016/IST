@@ -5,7 +5,6 @@ using EmailService.EmailSender;
 using EmailService.Events;
 using EmailService.TemplateLoader;
 using MassTransit;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,10 +29,13 @@ builder.Services.AddMassTransit(x =>
     {
         rider.AddConsumer<SendWelcomeEmailCommandHandler>();
         rider.AddConsumer<SendPasswordChangeEmailCommandHandler>();
+        rider.AddConsumer<SendNewAppointmentEmailCommandHandler>();
+        rider.AddConsumer<SendCancelAppointmentEmailCommandHandler>();
         rider.UsingKafka((context, k) =>
         {
             var host = builder.Configuration.GetSection("Kafka").GetSection("ServerAddress").Value;
             k.Host(host);
+
             k.TopicEndpoint<UserRegistred>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("UserRegistredTopic").Value, "r", e =>
             {
                 e.EnableAutoOffsetStore = true;
@@ -45,8 +47,8 @@ builder.Services.AddMassTransit(x =>
                     t.NumPartitions = 1;
                     t.ReplicationFactor = 1;
                 });
-
             });
+
             k.TopicEndpoint<ChangePassword>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("ChangePasswordTopic").Value, "r", e =>
             {
                 e.EnableAutoOffsetStore = true;
@@ -58,8 +60,34 @@ builder.Services.AddMassTransit(x =>
                     t.NumPartitions = 1;
                     t.ReplicationFactor = 1;
                 });
-
             });
+
+            k.TopicEndpoint<AppointmentCreated>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("AppointmentCreatedTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendNewAppointmentEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
+
+            k.TopicEndpoint<AppointmentCancelled>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("AppointmentCancelledTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendCancelAppointmentEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
+
         });
     });
 });

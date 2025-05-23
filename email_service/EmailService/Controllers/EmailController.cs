@@ -27,5 +27,19 @@ namespace EmailService.Controllers
             await producer.Produce(changePassword);
             return Accepted();
         }
+        [HttpPost("sendCancelAppointmentEmail")]
+        public async Task<IActionResult> TestSendingCancelAppointmentEmail([FromQuery] AppointmentCancelled request)
+        {
+            var producer = _topicProvider.GetProducer<AppointmentCancelled>(new Uri($"topic:{_options.AppointmentCancelledTopic}"));
+            await producer.Produce(request);
+            return Accepted();
+        }
+        [HttpPost("sendCreateAppointmentEmail")]
+        public async Task<IActionResult> TestSendingCreateAppointmentEmail([FromQuery] AppointmentCreated request)
+        {
+            var producer = _topicProvider.GetProducer<AppointmentCreated>(new Uri($"topic:{_options.AppointmentCreatedTopic}"));
+            await producer.Produce(request);
+            return Accepted();
+        }
     }
 }

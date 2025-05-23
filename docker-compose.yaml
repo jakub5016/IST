@@ -163,6 +163,9 @@ services:
     environment:
       - Kafka__ServerAddress=kafka:29092
       - Kafka__UserRegistredTopic=${REGISTER_RESPONSE_TOPIC}
+      - Kafka__AppointmentCreatedTopic=${NEW_APPOINTMENT_TOPIC}
+      - Kafka__ChangePasswordTopic=${PASSWORD_CHANGED_TOPIC}
+      - Kafka_AppointmentCancelledTopic=${APPOINTMENT_CANCELED_TOPIC}
       - SMTP__ServerAddress=smtp.gmail.com
       - SMTP__Email=${SMTP_EMAIL}
       - SMTP__From=AngioCard
