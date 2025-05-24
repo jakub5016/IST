@@ -61,5 +61,5 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
-
+app.MapGet("/health", () => new { status = "healthy" });
 app.Run();
