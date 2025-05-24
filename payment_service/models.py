@@ -12,3 +12,5 @@ class Order(BaseModel):
     totalAmount: int
     products: List[OrderRecord]
     refunded: bool = False
+    patientId: str
+    appointmentId: str

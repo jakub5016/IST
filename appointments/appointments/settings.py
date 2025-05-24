@@ -70,7 +70,7 @@ DATABASES = {
         'USER': os.environ.get('DATABASE_USER', 'appointments_user'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'secret'),
         'HOST': os.environ.get('DATABASE_HOST', 'appointments-db'),
-        'PORT': os.environ.get('DATABASE_PORT', '5432'),
+        'PORT': os.environ.get('DATABASE_PORT', '5433'),
     }
 }
 

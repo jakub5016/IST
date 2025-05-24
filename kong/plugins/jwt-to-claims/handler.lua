@@ -30,6 +30,7 @@ function JwtToClaims:access(conf)
     email              = "x-jwt-email",
     is_active          = "x-jwt-is-active",
     is_confirmed_email = "x-jwt-is-confirmed-email",
+    related_id         = "x-jwt-related-id",
     role               = "x-jwt-role",
   }
 

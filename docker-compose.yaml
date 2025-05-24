@@ -18,14 +18,6 @@ services:
       - ./kong/kong.yml:/etc/kong/kong.yml:ro
     networks:
       - iot
-  consul:
-    image: hashicorp/consul:latest
-    container_name: consul
-    ports:
-      - "8500:8500"
-    command: agent -dev -client=0.0.0.0
-    networks:
-      - iot
   kafka:
     container_name: kafka
     image: apache/kafka:latest
@@ -77,6 +69,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    command: -p 5433
+
   appointments-service:
     build: ./appointments/
     container_name: appointments
@@ -85,12 +79,14 @@ services:
     environment:
       - KAFKA_BROKER=kafka:29092
       - NEW_APPOINTMENT_TOPIC=${NEW_APPOINTMENT_TOPIC}
+      - APPOINTMENT_CANCELED_TOPIC=${APPOINTMENT_CANCELED_TOPIC}
     depends_on:
       - appointments-db
       - kafka
       - kong
     networks:
       - iot
+    
   auth-db:
     image: postgres:16-alpine
     container_name: auth-db    
@@ -123,7 +119,7 @@ services:
       - EMPLOYEE_HIRED_TOPIC=${EMPLOYEE_HIRED_TOPIC}
     depends_on:
       - auth-db
-      - email-service
+      - kafka
     networks:
       - iot
   payment-gateway:
@@ -136,6 +132,7 @@ services:
       - PAYMENT_CREATED_TOPIC=${PAYMENT_CREATED_TOPIC}
       - REFUND_REQUESTED_TOPIC=${REFUND_REQUESTED_TOPIC}
       - REFUND_ERROR_TOPIC=${REFUND_ERROR_TOPIC}
+      - REFUND_CREATED_TOPIC=${REFUND_CREATED_TOPIC}
     depends_on:
       - kafka
     networks:
@@ -149,10 +146,14 @@ services:
       - mongodb
       - kafka
     environment:
+      - NEW_APPOINTMENT_TOPIC=${NEW_APPOINTMENT_TOPIC}
+      - APPOINTMENT_CANCELED_TOPIC=${APPOINTMENT_CANCELED_TOPIC}
       - MONGO_URI=mongodb://mongodb:27017
       - KAFKA_BROKER=kafka:29092
       - PAYMENT_CREATED_TOPIC=${PAYMENT_CREATED_TOPIC}
       - REFUND_ERROR_TOPIC=${REFUND_ERROR_TOPIC}
+      - REFUND_REQUESTED_TOPIC=${REFUND_REQUESTED_TOPIC}
+      - REFUND_CREATED_TOPIC=${REFUND_CREATED_TOPIC}
     networks:
       - iot
   email-service:

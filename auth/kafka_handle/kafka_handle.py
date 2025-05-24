@@ -18,6 +18,7 @@ logger = logging.getLogger()
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
 PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred")
 EMPLOYEE_HIRED_TOPIC = os.getenv("EMPLOYEE_HIRED_TOPIC", "employee_hired")
+USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred") # ADD THIS AFTER CREATE
 
 User = get_user_model()
 
@@ -62,14 +63,22 @@ def kafka_consumer_listener(consumer):
         try:
             value = message.value
             topic = message.topic
+            logger.info(value)
             if topic == PATIENT_REGISTERED_TOPIC:
                 if not value.get('isAccountRegistred'):
                     email = value.get("email")
-                    if email:
+                    patient_id = value.get('patientId')
+                    foregin_id = patient_id
+                    if email and patient_id:
                         if not User.objects.filter(email=email).exists():
                             random_password = generate_random_password()
-                            user = User.objects.create_user(email=email, password=random_password)
+                            user = User.objects.create_user(
+                                email=email, 
+                                password=random_password, 
+                                related_id=patient_id
+                            )
                             code = ChangePasswordCode.objects.create(value=random.randint(0, 1000), user=user)
+                            
                             logger.info(f"Code {code.value}")
                         else:
                             logger.info(f"User with email {email} already exists.")
@@ -78,19 +87,38 @@ def kafka_consumer_listener(consumer):
             else:
                 email = value.get("email")
                 role = value.get('role')
+                employee_id = value.get("employeeId")
+                foregin_id = employee_id
                 if role not in ROLE_NAMES_LIST:
                     logger.info("This role does not exist")
                     continue
                 if email:
                     if not User.objects.filter(email=email).exists():
                         random_password = generate_random_password()
-                        user = User.objects.create_user(email=email, password=random_password, role=role)
+                        user = User.objects.create_user(
+                            email=email, 
+                            password=random_password, 
+                            role=role,
+                            related_id=employee_id
+                        )
                         code = ChangePasswordCode.objects.create(value=random.randint(0, 1000), user=user)
                         logger.info(f"Code {code.value}")
                     else:
                         logger.info(f"User with email {email} already exists.")
                 else:
                     logger.info("Email is missing in the message.")
+
+            if user:
+                kafka_payload = {
+                        "userId": str(user.id),
+                        "username": user.email,
+                        "activationLink": f"localhost:8000/auth/confirm_email?uuid={user.id}",
+                        "email": user.email,
+                        "role": user.role,
+                        "relatedId": foregin_id
+                    }
+                if not send_message(kafka_payload, USER_REGISTER_TOPC):
+                    raise Exception("Failed to send Kafka message")
         except Exception as e:
             logger.info(f"Error processing message {message}: {e}")
 

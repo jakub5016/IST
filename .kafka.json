@@ -1,0 +1,44 @@
+{
+    "PATIENT_REGISTRED_TOPIC":{
+        "PRODUCER":["patient_service"],
+        "CONSUMER":["auth"],
+        "PAYLOAD":[
+            "isAccountRegistred", "email", "patientId"
+        ]
+    },
+    "EMPLOYEE_HIRED_TOPIC":{
+        "PRODUCER":["employee_service"],
+        "CONSUMER":["auth"],
+        "PAYLOAD":[
+            "employeeId", "email", "role"
+        ]
+    },
+    "USER_REGISTER_TOPC":{
+        "PRODUCER":["auth"],
+        "CONSUMER":["appointments", "email_service"],
+        "PAYLOAD":[
+            "userId", "username", "activationLink", "email", "role", "relatedId"
+        ]
+    },
+    "NEW_APPOINTMENT_TOPIC":{
+        "PRODUCER":["appointments"],
+        "CONSUMER":["paymment_service", "email_service"],
+        "PAYLOAD":[
+            "appointmentId", 
+            "patientId", 
+            "price", 
+            "appointmentType", 
+            "startTime", 
+            "endTime", 
+            "doctorEmail", 
+            "patientEmail"
+        ]
+    },
+    "APPOINTMENT_CANCELED_TOPIC":{
+        "PRODUCER":["appointments"],
+        "CONSUMNER":["paymment_service"],
+        "PAYLOAD":[
+            "appointment_id"
+        ]
+    }
+}
