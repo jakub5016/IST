@@ -32,6 +32,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_confirmed_email = models.BooleanField(default=False)
     role = models.CharField(max_length=16, choices=ROLE_NAMES, default=ROLE_NAMES_LIST[0])
+    related_id = models.UUIDField(null=False, unique=True)
 
     objects = CustomUserManager()
 

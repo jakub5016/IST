@@ -5,7 +5,6 @@ import jwt
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from kafka_handle import start_kafka_listener
-from consul import register_service_with_consul
 from db import PAYMENTS_URL_COLLECTION
 from pay import get_order
 
@@ -30,7 +29,6 @@ async def startup_event(*args, **kwargs):
     FastAPI startup event.
     It triggers the Kafka consumer listener thread.
     """
-    register_service_with_consul(service_name="payment_gateway", service_port=8089)
     start_kafka_listener()
     print("Application startup complete and Kafka listener running.")
     yield

@@ -32,39 +32,11 @@ def generate_jwt_token(user):
         "is_active": user.is_active,
         "is_confirmed_email": user.is_confirmed_email,
         "role": user.role,
+        "related_id": str(user.related_id),
         "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=JWT_EXP_DELTA_SECONDS)
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
-
-class RegistrationView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                with transaction.atomic():
-                    user = serializer.save()
-                    token = generate_jwt_token(user)
-                    kafka_payload = {
-                        "username": user.email,
-                        "activationLink": f"localhost:8000/auth/confirm_email?uuid={user.id}",
-                        "email": user.email
-                    }
-                    if not send_message(kafka_payload, USER_REGISTER_TOPC):
-                        raise Exception("Failed to send Kafka message")
-            except Exception as e:
-                return Response(
-                    {"error": str(e)}, 
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-            return Response({
-                "token": token,
-                "email": user.email,
-                "is_active": user.is_active,
-                "uuid" : user.id
-            }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     def post(self, request):

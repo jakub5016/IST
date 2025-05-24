@@ -8,11 +8,14 @@ import threading
 import time
 import logging
 
-logger = logging.getLogger(__name__)
+from visits.models import UsersMapping
+
+logging.basicConfig(filemode='a', filename='kafka_logs.log', level=logging.INFO)
+logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 NEW_APPOINTMENT_TOPIC = os.getenv("NEW_APPOINTMENT_TOPIC", "new_appointment")
-PAYMENT_CREATED_TOPIC = os.getenv("PAYMENT_CREATED_TOPIC", "payment_created")
+USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
 
 def create_producer():
     return KafkaProducer(
@@ -20,9 +23,9 @@ def create_producer():
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
     )
 
-def create_consumer(topic):
+def create_consumer(topics):
     return KafkaConsumer(
-        topic,
+        *topics,
         bootstrap_servers=KAFKA_BROKER,
         auto_offset_reset="earliest",
         enable_auto_commit=True,
@@ -33,7 +36,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = None
+            consumer = create_consumer([USER_REGISTER_TOPC])
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -51,7 +54,17 @@ def kafka_consumer_listener(consumer):
                 value = message.value
                 topic = message.topic
                 logger.info(f"Received message from topic {topic}: {value}")
-
+                user_id = value.get("relatedId")
+                role = value.get("role")
+                email = value.get("email")
+                
+                UsersMapping.objects.update_or_create(
+                    id=user_id,
+                    defaults={
+                        "role": role,
+                        "email": email
+                    }
+                )
             except Exception as e:
                 logger.exception(f"Error processing Kafka message: {e}")
 

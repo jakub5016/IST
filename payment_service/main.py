@@ -7,7 +7,6 @@ from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from db import PAYMENTS_COLLECTION
 from kafka_handle import start_kafka_listener, send_message
-from consul import register_service_with_consul
 from uuid import uuid4
 
 logger = logging.getLogger()
@@ -21,7 +20,6 @@ async def startup_event(*args, **kwargs):
     FastAPI startup event.
     It triggers the Kafka consumer listener thread.
     """
-    register_service_with_consul(service_name="payment_service", service_port=8088)
     start_kafka_listener()
     print("Application startup complete and Kafka listener running.")
     yield
@@ -36,31 +34,24 @@ def health(request: Request):
         "headers": incoming
     }
 
-@app.post("/add_payment")
-async def add_payment(order: Order):
-    order_data = order.model_dump()
-    order_data['uuid'] = uuid4()
+@app.get("/payments/")
+async def get_payment_by_patient(request: Request):
     try:
-        result = PAYMENTS_COLLECTION.insert_one(order_data)
+        related_id = request.headers.get("x-jwt-related-id")
+        if not related_id:
+            raise HTTPException(status_code=400, detail="Missing x-jwt-related-id header")
 
-        if not result.acknowledged:
-            raise HTTPException(status_code=500, detail="Error inserting into database.")
+        payments_cursor = PAYMENTS_COLLECTION.find({"patientId": related_id})
+        payments = []
+        for payment in payments_cursor:
+            payment.pop('_id', None)
+            payments.append(payment)
 
-        try:
-            order_data_serialized = order_data
-            order_data_serialized['uuid'] = str(order_data_serialized['uuid'])
-            order_data_serialized.pop("_id")
-            method = order_data_serialized.pop("paymentMethod")
-            if method == "payu":
-                send_message(order_data, PAYMENT_CREATED_TOPIC)
-        except Exception as e:
-            PAYMENTS_COLLECTION.delete_one({"_id": result.inserted_id})
-            raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
-
-        return {"message": "Order created", "order": order_data}
-
+        return {"message": "Payments retrieved", "payments": payments}
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}, {order_data}")
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
 
 @app.get("/payment/{payment_uuid}")
 async def get_payment(payment_uuid: str):

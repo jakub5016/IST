@@ -1,11 +1,13 @@
 #!/bin/bash
-find . -type d -name "migration" | while read dir; do find "$dir" -type f ! -name "__init__.py" -delete; done
+echo "Checking for unapplied migrations"
+if python manage.py showmigrations --plan | grep '\[ \]'; then
+    echo "Apply database migrations"
+    python manage.py migrate
+else
+    echo "No new migrations to apply"
+fi
 
-echo "Create migrations"
-python manage.py makemigrations
-
-echo "Apply database migrations"
-python manage.py migrate
-
+python manage.py create_admin
+ 
 echo "Starting server"
 python manage.py runserver 

@@ -15,9 +15,10 @@ logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
 PAYMENT_CREATED_TOPIC = os.getenv("PAYMENT_CREATED_TOPIC", "payment_created")
+PAYMENT_URL_CREATED_TOPIC = os.getenv("PAYMENT_URL_CREATED_TOPIC", "payment_url_created")
 REFUND_REQUESTED_TOPIC = os.getenv("REFUND_REQUESTED_TOPIC", "refunded_payment")
 REFUND_ERROR_TOPIC = os.getenv("REFUND_ERROR_TOPIC", "refunded_payment_error")
-
+REFUND_CREATED_TOPIC = os.getenv("REFUND_CREATED_TOPIC", "refund_created")
 
 def create_producer():
     return KafkaProducer(
@@ -61,17 +62,17 @@ def kafka_consumer_listener(consumer: KafkaConsumer):
             topic = message.topic
             value = dict(value)
             uuid = value.get("uuid")
-
+            logger.info(f"Got new message: {value}")
             existing_order = PAYMENTS_URL_COLLECTION.find_one({"uuid": uuid})
             if topic == PAYMENT_CREATED_TOPIC:
                 if existing_order:
                     status = existing_order.get("status")
 
                     if status == "url_created":
-                        print(f"Order with uuid {uuid} already has URL created. Skipping creation.")
+                        logger.info(f"Order with uuid {uuid} already has URL created. Skipping creation.")
                         continue
 
-                    print(f"Order with uuid {uuid} exists but URL is not created. Setting status to in_progress.")
+                    logger.info(f"Order with uuid {uuid} exists but URL is not created. Setting status to in_progress.")
                     PAYMENTS_URL_COLLECTION.update_one(
                         {"uuid": uuid},
                         {"$set": {"status": "in_progress"}}
@@ -85,20 +86,22 @@ def kafka_consumer_listener(consumer: KafkaConsumer):
                         url['uuid'] = uuid
                         url['status'] = "url_created"
 
-                        send_message(url, "payment_url_created")
+                        send_message(url, PAYMENT_URL_CREATED_TOPIC)
                         PAYMENTS_URL_COLLECTION.update_one({"uuid": uuid}, {"$set": url})
 
-                        print(f"Payment URL created and updated {value}, {url}")
+                        logger.info(f"Payment URL created and updated {value}, {url}")
                     else:
-                        print(f"Error creating order for existing record.")
+                        logger.info(f"Error creating order for existing record.")
                         send_message({"uuid": uuid}, "payment_url_error")
 
                     continue  # Move to next message
 
-                value_without_uuid = value.copy()
-                value_without_uuid.pop("uuid", None)
-
-                url = create_order(value_without_uuid)
+                scrapped_value = value.copy()
+                scrapped_value.pop("uuid", None)
+                scrapped_value.pop("refunded", None)
+                scrapped_value.pop("patientId", None)
+                scrapped_value.pop("appointmentId", None)
+                url = create_order(scrapped_value)
                 if url:
                     url['uuid'] = uuid
                     url['status'] = "url_created"
@@ -115,7 +118,10 @@ def kafka_consumer_listener(consumer: KafkaConsumer):
                 status = existing_order.get("status")
                 if status == "url_created":
                     orderId = existing_order.get("orderId")
-                    refund_order(orderId)
+                    if refund_order(orderId):
+                        send_message({"uuid": uuid}, REFUND_CREATED_TOPIC)
+                    else:
+                        raise Exception
                 else:
                     send_message({"uuid": uuid}, REFUND_ERROR_TOPIC)
 
@@ -138,7 +144,7 @@ def send_message(message:Dict[str, any], topic:str):
     future = PRODUCER.send(topic, message)
     try:
         record_metadata = future.get(timeout=10) 
-        logger.info(f"Produced refund message: {message} to topic {record_metadata.topic}")
+        logger.info(f"Produced message: {message} to topic {record_metadata.topic}")
         return record_metadata
     except Exception as e:
         return None
