@@ -117,6 +117,7 @@ services:
       - USER_REGISTER_TOPC=${REGISTER_RESPONSE_TOPIC}
       - PATIENT_REGISTERED_TOPIC=${PATIENT_REGISTERED_TOPIC}
       - EMPLOYEE_HIRED_TOPIC=${EMPLOYEE_HIRED_TOPIC}
+      - PASSWORD_CHANGED_TOPIC=${PASSWORD_CHANGED_TOPIC}
     depends_on:
       - auth-db
       - kafka
@@ -164,6 +165,9 @@ services:
     environment:
       - Kafka__ServerAddress=kafka:29092
       - Kafka__UserRegistredTopic=${REGISTER_RESPONSE_TOPIC}
+      - Kafka__AppointmentCreatedTopic=${NEW_APPOINTMENT_TOPIC}
+      - Kafka__ChangePasswordTopic=${PASSWORD_CHANGED_TOPIC}
+      - Kafka_AppointmentCancelledTopic=${APPOINTMENT_CANCELED_TOPIC}
       - SMTP__ServerAddress=smtp.gmail.com
       - SMTP__Email=${SMTP_EMAIL}
       - SMTP__From=AngioCard

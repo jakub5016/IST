@@ -2,16 +2,17 @@
 
 namespace EmailService.Events
 {
-    public record UserRegistredEvent(string Username, string ActivationLink, string Email)
+    public record ChangePassword(Guid Id, string Username, string Url, string Code, string Email)
     {
         public EmailMessage GetEmailMessage(string content)
         {
             content = content.Replace("{{username}}", Username)
-                .Replace("{{activationLink}}", ActivationLink);
+                .Replace("{{url}}", Url)
+                .Replace("{{code}}", Code);
             return new EmailMessage()
             {
                 Content = content,
-                Subject = "Welcome to AngioCard"
+                Subject = "Change password"
             };
         }
     }

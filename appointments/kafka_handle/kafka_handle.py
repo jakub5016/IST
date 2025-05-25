@@ -14,7 +14,6 @@ logging.basicConfig(filemode='a', filename='kafka_logs.log', level=logging.INFO)
 logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
-NEW_APPOINTMENT_TOPIC = os.getenv("NEW_APPOINTMENT_TOPIC", "new_appointment")
 USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
 
 def create_producer():
