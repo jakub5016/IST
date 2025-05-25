@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import timezone, datetime
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -90,13 +91,18 @@ def appointment(request):
 
             appointment = serializer.save()
             appointment_type = appointment.appointment_type
+
+            start_iso = appointment.start_time.isoformat().replace('+00:00', 'Z') 
+            end_iso = appointment.end_time.isoformat().replace('+00:00', 'Z')
+
             appointment_data = {
                 "appointmentId": str(appointment.id),
+                "username" :str(patient.email),
                 "patientId": str(appointment.patient_id),
                 "price": float(appointment_type.price),
                 "appointmentType": str(appointment_type.type_name),
-                "startTime": str(appointment.start_time),
-                "endTime": str(appointment.end_time),
+                "startTime": str(start_iso),
+                "endTime": str(end_iso),
                 "doctorEmail": str(doctor.email),
                 "patientEmail": str(patient.email)
             }
@@ -111,6 +117,8 @@ def appointment(request):
 
     appointments = Appointment.objects.filter(**filter_kwargs)
     appointments_list = []
+
+
     for appointment in appointments:
         appointments_list.append({
             "id": str(appointment.id),
@@ -119,7 +127,7 @@ def appointment(request):
             "status": appointment.status,
             "patient_id": appointment.patient_id,
             "doctor_id": appointment.doctor_id,
-            "appointment_type": appointment.appointment_type.type_name
+            "appointment_type": appointment.appointment_type.type_name,
         })
     return Response(appointments_list, status=status.HTTP_200_OK)
 
@@ -154,7 +162,23 @@ def appointment_status(request, appointment_id):
     appointment.status = new_status
     appointment.save()
 
+    patient = UsersMapping.objects.get(id=appointment.patient_id)
+    doctor = UsersMapping.objects.get(id=appointment.doctor_id)
+
+    start_iso = appointment.start_time.isoformat().replace('+00:00', 'Z') 
+    end_iso = appointment.end_time.isoformat().replace('+00:00', 'Z')
+
     if new_status == 'canceled':
-        send_message({'appointmentId': str(appointment.id)}, APPOINTMENT_CANCELED_TOPIC)
+        send_message({
+            'appointmentId': str(appointment.id),
+            'username': str(patient.email),
+            'appointmentType': str(appointment.appointment_type.type_name),
+            'startTime': str(start_iso),
+            'endTime': str(end_iso),
+            'patientId': str(appointment.patient_id),
+            'patientEmail': str(patient.email),
+            'doctorEmail': str(doctor.email),
+            "price": int(appointment.appointment_type.price)
+        }, APPOINTMENT_CANCELED_TOPIC)
 
     return Response({'appointmentId': str(appointment.id), 'status': new_status}, status=status.HTTP_200_OK)

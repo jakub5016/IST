@@ -1,6 +1,6 @@
 ﻿namespace EmailService.TemplateLoader
 {
-    public class TemplateLoader: ITemplateLoader
+    public class TemplateLoader : ITemplateLoader
     {
         public string LoadEmailContentFromTemplate(string templateName)
         {

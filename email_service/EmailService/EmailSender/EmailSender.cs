@@ -10,13 +10,13 @@ namespace EmailService.EmailSender
     {
         private readonly SMTPOptions _options = options.Value;
 
-        public async Task SendEmailAsync(string to, EmailMessage emailContent)
+        public async Task SendEmailAsync(string to, EmailMessage emailContent, string? bcc = null)
         {
             var message = new MimeMessage();
-            
-            message.From.Add(new MailboxAddress(_options.From ,_options.Email));
-            message.To.Add(new MailboxAddress(to,to));
+            message.From.Add(new MailboxAddress(_options.From, _options.Email));
+            message.To.Add(new MailboxAddress(to, to));
             message.Subject = emailContent.Subject;
+            if (bcc is not null) { message.Cc.Add(InternetAddress.Parse(bcc)); }
             var bodyBuilder = new BodyBuilder
             {
                 HtmlBody = emailContent.Content
