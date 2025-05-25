@@ -48,6 +48,20 @@ services:
                 - exp
           - name: jwt-to-claims
 
+  - name: document-service
+    url: "http://document_service:8080"
+    routes:
+      - name: documents-route
+        paths:
+          - /documents
+        
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+          - name: jwt-to-claims
+
   - name: patient-service
     url: "http://patient:8080"
     routes:
