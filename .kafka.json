@@ -38,7 +38,14 @@
         "PRODUCER":["appointments"],
         "CONSUMNER":["paymment_service"],
         "PAYLOAD":[
-            "appointment_id"
+            "appointment_id",
+            "username",
+            "appointmentType",
+            "startTime", 
+            "endTime", 
+            "doctorEmail", 
+            "patientEmail",
+            "patientId"
         ]
     }
 }

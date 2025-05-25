@@ -8,15 +8,15 @@ namespace EmailService.Events
         {
             content = content.Replace("{{username}}", Username)
                 .Replace("{{price}}", Price.ToString())
-                .Replace("{{username}}", Username)
                 .Replace("{{appointmentType}}", AppointmentType)
                 .Replace("{{startTime}}", StartTime.ToString("dd-MM-yyyy HH:mm"))
-                .Replace("{{endTime}}", EndTime.ToString("dd-MM-yyyy HH:mm"));
+                .Replace("{{endTime}}", EndTime.ToString("dd-MM-yyyy HH:mm"))
+                .Replace("{{appointmentId}}", AppointmentId.ToString());
 
             return new EmailMessage()
             {
                 Content = content,
-                Subject = $"AngioCard: Appointment {AppointmentId} scheduled"
+                Subject = $"AngioCard: Appointment scheduled"
             };
         }
     }

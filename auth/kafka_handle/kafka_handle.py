@@ -18,7 +18,8 @@ logger = logging.getLogger()
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
 PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred")
 EMPLOYEE_HIRED_TOPIC = os.getenv("EMPLOYEE_HIRED_TOPIC", "employee_hired")
-USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred") # ADD THIS AFTER CREATE
+USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
+PASSWORD_CHANGED_TOPIC = os.getenv("PASSWORD_CHANGED_TOPIC", "password_changed")
 
 User = get_user_model()
 
@@ -80,6 +81,12 @@ def kafka_consumer_listener(consumer):
                             code = ChangePasswordCode.objects.create(value=random.randint(0, 1000), user=user)
                             
                             logger.info(f"Code {code.value}")
+                            send_message({
+                                "username": email,
+                                "email":email,
+                                "url": f"localhost:8000/auth/change_password",
+                                "code":str(code.value),
+                            }, PASSWORD_CHANGED_TOPIC)
                         else:
                             logger.info(f"User with email {email} already exists.")
                     else:
@@ -131,7 +138,7 @@ def send_message(message:Dict[str, any], topic:str):
     future = PRODUCER.send(topic, message)
     try:
         record_metadata = future.get(timeout=10) 
-        logger.info(f"Produced refund message: {message} to topic {record_metadata.topic}")
+        logger.info(f"Produced message: {message} to topic {record_metadata.topic}")
         return record_metadata
     except Exception as e:
         return None
