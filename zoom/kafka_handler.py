@@ -7,55 +7,11 @@ import os
 import threading
 import time
 import logging
-import requests
 
-from zoom_token import access_token
+from create_meeting import create_zoom_meeting
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-# --- Zoom config ---
-admin_email = 'lukaszwasilewski22@gmail.com'
-meeting_url = f'https://api.zoom.us/v2/users/{admin_email}/meetings'
-
-headers = {
-    'Authorization': f'Bearer {access_token}',
-    'Content-Type': 'application/json'
-}
-
-def create_zoom_meeting(appointment_id: str, start_time: str, duration: int):
-    meeting_details = {
-        'topic': f'Wizyta online - {appointment_id}',
-        'type': 2,
-        'start_time': start_time,
-        'duration': duration,
-        'timezone': 'Europe/Warsaw',
-        'agenda': 'Wizyta online z lekarzem',
-        'settings': {
-            'host_video': True,
-            'participant_video': True,
-            'waiting_room': False,
-            'join_before_host': True,
-            'mute_upon_entry': True
-        }
-    }
-
-    response = requests.post(meeting_url, headers=headers, data=json.dumps(meeting_details))
-    if response.status_code == 201:
-        meeting_info = response.json()
-        return {
-            "status": "success",
-            "meeting_id": meeting_info.get("id"),
-            "join_url": meeting_info.get("join_url"),
-            "start_url": meeting_info.get("start_url"),
-        }
-    else:
-        logger.error(f"Zoom API error: {response.status_code} - {response.text}")
-        return {
-            "status": "error",
-            "code": response.status_code,
-            "message": response.text
-        }
 
 # --- Kafka setup ---
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
@@ -103,10 +59,10 @@ def kafka_consumer_listener(consumer, producer):
                 continue
 
             appointment_id = appointment["appointment_id"]
-            duration = appointment["duration_minutes"]
-            start_time = appointment.get("start_time") or "2025-06-01T12:00:00Z"  # placeholder
+            start_time = appointment.get("start_time") or "2025-06-01T12:00:00Z"
+            end_time = appointment.get("end_time") or "2025-06-01T13:00:00Z"
 
-            result = create_zoom_meeting(appointment_id, start_time, duration)
+            result = create_zoom_meeting(appointment_id, start_time, end_time)
 
             response_payload = {
                 "appointment_id": appointment_id,
@@ -117,7 +73,9 @@ def kafka_consumer_listener(consumer, producer):
                 response_payload.update({
                     "meeting_id": result["meeting_id"],
                     "join_url": result["join_url"],
-                    "start_url": result["start_url"]
+                    "doctor_email": appointment["doctorEmail"],
+                    "patient_email": appointment["patientEmail"],
+                    "start_time": start_time,
                 })
             else:
                 response_payload.update({

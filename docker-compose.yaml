@@ -269,9 +269,11 @@ services:
       - ZOOM_ACCOUNT_ID=${ZOOM_ACCOUNT_ID}
       - ZOOM_CLIENT_ID=${ZOOM_CLIENT_ID}
       - ZOOM_CLIENT_SECRET=${ZOOM_CLIENT_SECRET}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
     depends_on:
       - kafka
       - kong
+      - appointments-service
     networks:
       - iot
 
