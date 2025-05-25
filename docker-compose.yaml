@@ -259,6 +259,22 @@ services:
       - patient-db
     networks:
       - iot
+  zoom-handler:
+    build: ./zoom/
+    container_name: zoom-handler
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - NEW_APPOINTMENT_TOPIC=${NEW_APPOINTMENT_TOPIC}
+      - ZOOM_CREATED_TOPIC=${ZOOM_CREATED_TOPIC}
+      - ZOOM_ACCOUNT_ID=${ZOOM_ACCOUNT_ID}
+      - ZOOM_CLIENT_ID=${ZOOM_CLIENT_ID}
+      - ZOOM_CLIENT_SECRET=${ZOOM_CLIENT_SECRET}
+    depends_on:
+      - kafka
+      - kong
+    networks:
+      - iot
+
 networks:
   iot:
     driver: bridge
