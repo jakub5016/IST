@@ -1,4 +1,5 @@
-﻿using DocumentService.Application.Commands.UploadDocument;
+﻿using DocumentService.API.Auth;
+using DocumentService.Application.Commands.UploadDocument;
 using DocumentService.Application.Queries.GetDocument;
 using DocumentService.Application.Queries.GetDocuments;
 using DocumentService.Application.Utils;
@@ -13,6 +14,7 @@ namespace DocumentService.API
     {
         private readonly IMediator _mediator = mediator;
 
+        [RoleCheck(Roles.Doctor, Roles.Patient)]
         [HttpGet("documents/{appointmentId}")]
         public async Task<IActionResult> GetDocuments(Guid appointmentId)
         {
@@ -20,6 +22,8 @@ namespace DocumentService.API
             var response = await client.GetResponse<Result<GetDocumentsResponse>>(new GetDocumentsQuery(appointmentId));
             return response.Message.IsSuccess ? Ok(response.Message.Value) : BadRequest(response.Message.Error.Description);
         }
+
+        [RoleCheck(Roles.Doctor, Roles.Patient)]
         [HttpGet("document/{id}")]
         public async Task<IActionResult> GetDocumentAsync(Guid id)
         {
@@ -27,6 +31,8 @@ namespace DocumentService.API
             var response = await client.GetResponse<Result<GetDocumentUrlResponse>>(new GetDocumentQuery(id));
             return response.Message.IsSuccess ? Ok(response.Message.Value) : BadRequest(response.Message.Error.Description);
         }
+
+        [RoleCheck(Roles.Doctor)]
         [HttpPost("document")]
         public async Task<IActionResult> UploadDocumentAsync([FromForm] IFormFileCollection files, Guid appointmentId, string name)
         {
