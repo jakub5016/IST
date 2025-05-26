@@ -104,7 +104,8 @@ def appointment(request):
                 "startTime": str(start_iso),
                 "endTime": str(end_iso),
                 "doctorEmail": str(doctor.email),
-                "patientEmail": str(patient.email)
+                "patientEmail": str(patient.email),
+                "is_online": bool(appointment_type.is_online),
             }
             send_message(appointment_data, NEW_APPOINTMENT_TOPIC)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -128,6 +129,7 @@ def appointment(request):
             "patient_id": appointment.patient_id,
             "doctor_id": appointment.doctor_id,
             "appointment_type": appointment.appointment_type.type_name,
+            "zoom_link": appointment.zoom_link
         })
     return Response(appointments_list, status=status.HTTP_200_OK)
 

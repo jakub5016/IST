@@ -18,18 +18,17 @@ headers = {
 }
 
 def create_zoom_meeting(appointment_id: str, start_time: str, end_time: str):
-    # Zakładamy, że start_time i end_time są w formacie ISO 8601 np. "2025-06-01T12:00:00Z"
     start_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
     end_dt = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
     duration = int((end_dt - start_dt).total_seconds() / 60)
 
     meeting_details = {
-        'topic': f'Wizyta online - {appointment_id}',
+        'topic': f'Online visit - {appointment_id}',
         'type': 2,
         'start_time': start_time,
         'duration': duration,
         'timezone': 'Europe/Warsaw',
-        'agenda': 'Wizyta online z lekarzem',
+        'agenda': 'Online visit',
         'settings': {
             'host_video': True,
             'participant_video': True,

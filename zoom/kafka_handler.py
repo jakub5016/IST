@@ -13,10 +13,10 @@ from create_meeting import create_zoom_meeting
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# --- Kafka setup ---
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 NEW_APPOINTMENT_TOPIC = os.getenv("NEW_APPOINTMENT_TOPIC", "new_appointment")
 ZOOM_CREATED_TOPIC = os.getenv("ZOOM_CREATED_TOPIC", "zoom_created")
+ZOOM_ERROR_TOPIC = os.getenv("ZOOM_ERROR_TOPIC", "zoom_error")
 
 def create_producer():
     return KafkaProducer(
@@ -55,13 +55,13 @@ def kafka_consumer_listener(consumer, producer):
             logger.info(f"Received appointment: {appointment}")
 
             if not appointment.get("is_online"):
-                logger.info(f"Wizyta {appointment['appointment_id']} nie jest online")
+                logger.info(f"Visit {appointment['appointment_id']} is not online visit.")
                 continue
 
-            appointment_id = appointment["appointment_id"]
-            start_time = appointment.get("start_time") or "2025-06-01T12:00:00Z"
-            end_time = appointment.get("end_time") or "2025-06-01T13:00:00Z"
-
+            appointment_id = appointment["appointmentId"]
+            start_time = appointment.get("startTime")
+            end_time = appointment.get("endTime")
+            
             result = create_zoom_meeting(appointment_id, start_time, end_time)
 
             response_payload = {
@@ -71,19 +71,17 @@ def kafka_consumer_listener(consumer, producer):
 
             if result["status"] == "success":
                 response_payload.update({
-                    "meeting_id": result["meeting_id"],
-                    "join_url": result["join_url"],
-                    "doctor_email": appointment["doctorEmail"],
-                    "patient_email": appointment["patientEmail"],
-                    "start_time": start_time,
+                    "meetingId": result["meeting_id"],
+                    "joinUrl": result["join_url"],
+                    "doctorEmail": appointment["doctorEmail"],
+                    "patientEmail": appointment["patientEmail"],
+                    "startTime": start_time,
+                    "appointmentType": appointment['appointmentType'],
+                    "appointmentId": appointment['appointmentId']
                 })
+                send_message(producer, response_payload, ZOOM_CREATED_TOPIC)
             else:
-                response_payload.update({
-                    "error_code": result.get("code"),
-                    "error_message": result.get("message")
-                })
-
-            send_message(producer, response_payload, ZOOM_CREATED_TOPIC)
+                send_message(producer, response_payload, ZOOM_ERROR_TOPIC)
 
         except Exception as e:
             logger.exception(f"Error processing appointment message: {e}")
