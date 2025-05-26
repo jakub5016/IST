@@ -8,13 +8,16 @@ import threading
 import time
 import logging
 
-from visits.models import UsersMapping
+from visits.models import Appointment, UsersMapping
 
 logging.basicConfig(filemode='a', filename='kafka_logs.log', level=logging.INFO)
 logger = logging.getLogger()
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
+ZOOM_CREATED_TOPIC = os.getenv("ZOOM_CREATED_TOPIC", "zoom_created")
+ZOOM_ERROR_TOPIC = os.getenv("ZOOM_ERROR_TOPIC", "zoom_error")
+APPOINTMENT_CANCELED_TOPIC = os.getenv("APPOINTMENT_CANCELED_TOPIC", "appointment_cancelled")
 
 def create_producer():
     return KafkaProducer(
@@ -35,7 +38,7 @@ def get_consumer_and_producer():
     while True:
         try:
             producer = create_producer()
-            consumer = create_consumer([USER_REGISTER_TOPC])
+            consumer = create_consumer([USER_REGISTER_TOPC, ZOOM_CREATED_TOPIC, ZOOM_ERROR_TOPIC])
             break
         except NoBrokersAvailable:
             logger.warning("Kafka broker not available. Retrying in 5 seconds...")
@@ -53,17 +56,52 @@ def kafka_consumer_listener(consumer):
                 value = message.value
                 topic = message.topic
                 logger.info(f"Received message from topic {topic}: {value}")
-                user_id = value.get("relatedId")
-                role = value.get("role")
-                email = value.get("email")
-                
-                UsersMapping.objects.update_or_create(
-                    id=user_id,
-                    defaults={
-                        "role": role,
-                        "email": email
-                    }
-                )
+                if topic == USER_REGISTER_TOPC:
+                    user_id = value.get("relatedId")
+                    role = value.get("role")
+                    email = value.get("email")
+                    
+                    UsersMapping.objects.update_or_create(
+                        id=user_id,
+                        defaults={
+                            "role": role,
+                            "email": email
+                        }
+                    )
+                elif topic == ZOOM_CREATED_TOPIC:
+                    appointment_id = value.get("appointmentId")
+                    try:
+                        appointment = Appointment.objects.get(id=appointment_id)
+                        appointment.zoom_link = value.get("joinUrl")
+                        appointment.save()
+                    except Appointment.DoesNotExist:
+                        logger.error(f"Appointment with id {appointment_id} does not exist but there is zoom meeting!")
+
+                elif topic == ZOOM_ERROR_TOPIC:
+                    appointment_id = value.get("appointmentId")
+                    try:
+                        appointment = Appointment.objects.get(id=appointment_id)
+                        appointment.status = "cancelled" # Online meeting without link has no sense
+                        patient = UsersMapping.objects.get(id=appointment.patient_id)
+                        doctor = UsersMapping.objects.get(id=appointment.doctor_id)
+
+                        start_iso = appointment.start_time.isoformat().replace('+00:00', 'Z') 
+                        end_iso = appointment.end_time.isoformat().replace('+00:00', 'Z')
+
+                        send_message({
+                            'appointmentId': str(appointment.id),
+                            'username': str(patient.email),
+                            'appointmentType': str(appointment.appointment_type.type_name),
+                            'startTime': str(start_iso),
+                            'endTime': str(end_iso),
+                            'patientId': str(appointment.patient_id),
+                            'patientEmail': str(patient.email),
+                            'doctorEmail': str(doctor.email),
+                            "price": int(appointment.appointment_type.price)
+                        }, APPOINTMENT_CANCELED_TOPIC)
+                    except Appointment.DoesNotExist:
+                        logger.error(f"Appointment with id {appointment_id} does not exist, but error in zoom appered.")
+
             except Exception as e:
                 logger.exception(f"Error processing Kafka message: {e}")
 

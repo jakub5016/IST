@@ -43,3 +43,4 @@ class Appointment(models.Model):
     patient_id = models.UUIDField(null=False)
     doctor_id = models.UUIDField(null=False)
     appointment_type = models.ForeignKey(AppointmentType, on_delete=models.CASCADE)
+    zoom_link = models.TextField(null=True, blank=True)
