@@ -1,0 +1,107 @@
+<html>
+<head>
+    <title>Your Zoom Meeting is Scheduled</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 22px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .details {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .details p {
+            margin: 5px 0;
+        }
+
+        .zoom-link {
+            background-color: #e8f0fe;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .zoom-link a {
+            color: #0b72b9;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .zoom-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 30px;
+        }
+
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>Hello!</h1>
+
+        <p>Your Zoom meeting has been successfully scheduled. Here are the details:</p>
+
+        <div class="details">
+            <p><strong>Appointment Type:</strong> {{appointmentType}}</p>
+            <p><strong>Start Time:</strong> {{startTime}}</p>
+            <p><strong>End Time:</strong> {{endTime}}</p>
+        </div>
+
+        <div class="zoom-link">
+            <p><strong>Join Zoom Meeting:</strong></p>
+            <p><a href="{{zoomLink}}" target="_blank">{{zoomLink}}</a></p>
+        </div>
+
+        <p>Please join a few minutes early and ensure you have a stable internet connection.</p>
+
+        <div class="footer">
+            <p>Best regards,</p>
+            <p>The AngioCard Team</p>
+            <p><a href="http://www.yourcompany.com">www.yourcompany.com</a></p>
+        </div>
+    </div>
+</body>
+</html>

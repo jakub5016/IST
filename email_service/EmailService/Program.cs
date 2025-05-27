@@ -31,6 +31,7 @@ builder.Services.AddMassTransit(x =>
         rider.AddConsumer<SendPasswordChangeEmailCommandHandler>();
         rider.AddConsumer<SendNewAppointmentEmailCommandHandler>();
         rider.AddConsumer<SendCancelAppointmentEmailCommandHandler>();
+        rider.AddConsumer<SendZoomMeetingEmailCommandHandler>();
         rider.UsingKafka((context, k) =>
         {
             var host = builder.Configuration.GetSection("Kafka").GetSection("ServerAddress").Value;
@@ -87,7 +88,18 @@ builder.Services.AddMassTransit(x =>
                     t.ReplicationFactor = 1;
                 });
             });
-
+            k.TopicEndpoint<ZoomCreated>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("ZoomCreatedTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendZoomMeetingEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
         });
     });
 });

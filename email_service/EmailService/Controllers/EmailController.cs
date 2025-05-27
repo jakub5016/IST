@@ -41,5 +41,12 @@ namespace EmailService.Controllers
             await producer.Produce(request);
             return Accepted();
         }
+        [HttpPost("sendZoomEmail")]
+        public async Task<IActionResult> TestSendingZoomEmail([FromQuery] ZoomCreated request)
+        {
+            var producer = _topicProvider.GetProducer<ZoomCreated>(new Uri($"topic:{_options.ZoomCreatedTopic}"));
+            await producer.Produce(request);
+            return Accepted();
+        }
     }
 }
