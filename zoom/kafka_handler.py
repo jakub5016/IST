@@ -71,13 +71,13 @@ def kafka_consumer_listener(consumer, producer):
 
             if result["status"] == "success":
                 response_payload.update({
-                    "meetingId": result["meeting_id"],
+                    "meetingId": str(result["meeting_id"]),
                     "joinUrl": result["join_url"],
                     "doctorEmail": appointment["doctorEmail"],
                     "patientEmail": appointment["patientEmail"],
                     "startTime": start_time,
-                    "appointmentType": appointment['appointmentType'],
-                    "appointmentId": appointment['appointmentId']
+                    "appointmentType": str(appointment['appointmentType']),
+                    "appointmentId": str(appointment['appointmentId'])
                 })
                 send_message(producer, response_payload, ZOOM_CREATED_TOPIC)
             else:

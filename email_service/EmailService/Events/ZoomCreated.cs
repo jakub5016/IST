@@ -2,7 +2,7 @@
 
 namespace EmailService.Events
 {
-    public record ZoomCreated(Guid MeetingId, Guid AppointmentId, string JoinUrl, string DoctorEmail, string PatientEmail, string AppointmentType, DateTime StartTime, DateTime EndTime)
+    public record ZoomCreated(string MeetingId, Guid AppointmentId, string JoinUrl, string DoctorEmail, string PatientEmail, string AppointmentType, DateTime StartTime, DateTime EndTime)
     {
         public EmailMessage GetEmailMessage(string content)
         {
