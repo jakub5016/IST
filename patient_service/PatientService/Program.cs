@@ -36,6 +36,8 @@ builder.Services.AddMediator(x =>
     x.AddConsumer<ConfirmNumberCommandHandler>();
     x.AddConsumer<UpdateCommandHandler>();
     x.AddConsumer<GetByIdCommandHandler>();
+    x.AddConsumer<RegisterCommandHandler>();
+
 });
 
 builder.Services.AddMassTransit(x => {
@@ -80,7 +82,7 @@ builder.Services.AddMassTransit(x => {
 });
 builder.Services.Configure<MassTransitHostOptions>(options =>
 {
-    options.WaitUntilStarted = true;
+    options.WaitUntilStarted = false;
     options.StartTimeout = TimeSpan.FromSeconds(30);
     options.StopTimeout = TimeSpan.FromMinutes(1);
 });

@@ -11,11 +11,23 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not User.objects.filter(is_staff=True).exists():
             User.objects.create_superuser(
-                                          email="admin@admin.com",
-                                          password=password, 
-                                          related_id=uuid4(), 
-                                          role="employee",
-                                          is_confirmed_email=True)
+                email="admin@admin.com",
+                password=password, 
+                related_id=uuid4(), 
+                role="admin",
+                is_confirmed_email=True
+            )
             print("Superuser created.")
         else:
             print("Superuser already exists.")
+
+        try:
+            User.objects.create(
+                email="pani.kasia@example.com",
+                password=password,
+                related_id='1d01419d-ac22-446e-b520-f51795a375c0',
+                role="employee",
+                is_confirmed_email=True
+            )
+        except Exception as e:
+            print(f"Cannot create example employee: {e}")

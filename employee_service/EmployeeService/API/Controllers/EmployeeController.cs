@@ -1,4 +1,5 @@
-﻿using EmployeeService.Application.Commands.Cancel;
+﻿using EmployeeService.API.Auth;
+using EmployeeService.Application.Commands.Cancel;
 using EmployeeService.Application.Commands.Dismiss;
 using EmployeeService.Application.Commands.Hire;
 using EmployeeService.Application.Queries.GetById;
@@ -28,7 +29,7 @@ namespace EmployeeService.API.Controllers
             _mediator = mediator;
             _producer = producer;
         }
-
+        [RoleCheck]
         [HttpPost("hire")]
         public async Task<IActionResult> HireEmployeeAsync(HireEmployeeCommand request)
         {
@@ -44,25 +45,32 @@ namespace EmployeeService.API.Controllers
                 .ToList();
             return BadRequest(errors);
         }
-        
+        [RoleCheck]
         [HttpDelete("dismiss/{id}")]
-        public async Task<IActionResult> DismissEmployee(Guid id) {
+        public async Task<IActionResult> DismissEmployee(Guid id)
+        {
             var client = _mediator.CreateRequestClient<DismissCommand>();
             var response = await client.GetResponse<Result>(new DismissCommand(id));
             return GetResponse(response);
         }
+
         [HttpDelete("{id}")]
-        public IActionResult CancelEmployee(Guid id)
+        public IActionResult CancelEmployeeTest(Guid id)
         {
             _producer.Produce(new CancelEmploymentCommand(id));
             return Accepted();
         }
+
+        [RoleCheck(Roles.Patient, Roles.Employee)]
         [HttpGet("doctor/all")]
-        public async Task<IActionResult> GetDoctors() {
+        public async Task<IActionResult> GetDoctors()
+        {
             var client = _mediator.CreateRequestClient<GetDoctorsQuery>();
             var response = await client.GetResponse<Result<GetDoctorsResponse>>(new GetDoctorsQuery());
             return GetResponse(response);
         }
+
+        [RoleCheck(Roles.Patient, Roles.Employee, Roles.Doctor)]
         [HttpGet("doctor/{id}")]
         public async Task<IActionResult> GetDoctors(Guid id)
         {
@@ -71,12 +79,16 @@ namespace EmployeeService.API.Controllers
             return GetResponse(response);
         }
 
+        [RoleCheck]
         [HttpGet("all")]
-        public async Task<IActionResult> GetEmployeesAsync() {
+        public async Task<IActionResult> GetEmployeesAsync()
+        {
             var client = _mediator.CreateRequestClient<GetEmployeesQuery>();
             var response = await client.GetResponse<Result<GetEmployeesResponse>>(new GetEmployeesQuery());
             return GetResponse(response);
         }
+
+        [RoleCheck]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEmployeeByIdAsync(Guid id)
         {
@@ -84,6 +96,7 @@ namespace EmployeeService.API.Controllers
             var response = await client.GetResponse<Result<GetEmployeeResponse>>(new GetByIdQuery(id));
             return GetResponse(response);
         }
+
         private IActionResult GetResponse(Response<Result> response)
         {
             return response.Message.IsSuccess ? Ok() : response.Message.Error.Code == "404" ? NotFound() : BadRequest();
