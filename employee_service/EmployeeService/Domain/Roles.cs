@@ -2,7 +2,7 @@
 {
     public enum Role
     {
-        Doctor, Receptionist
+        Doctor, Employee
     }
     public static class RoleExtensions
     {
@@ -12,9 +12,9 @@
             {
                 return Role.Doctor;
             }
-            if(role.Equals("receptionist", StringComparison.CurrentCultureIgnoreCase))
+            if(role.Equals("employee", StringComparison.CurrentCultureIgnoreCase))
             {
-                return Role.Receptionist;
+                return Role.Employee;
             }
             throw new ArgumentException("Invalid Role");
         }

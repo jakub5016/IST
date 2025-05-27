@@ -11,9 +11,10 @@ ROLE_NAMES = [
     ("patient", "patient"),
     ("doctor", "doctor"),
     ("employee", "employee"),
+    ("admin", "admin")
 ]
 
-ROLE_NAMES_LIST = ['patient', 'doctor', 'employee']
+ROLE_NAMES_LIST = ['patient', 'doctor', 'employee', 'admin']
 
 class UsersMapping(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
