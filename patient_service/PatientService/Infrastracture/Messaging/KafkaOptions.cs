@@ -9,6 +9,7 @@
             public string UserCreationFailedTopic {  get; set; } = string.Empty;  
             public string PatientRegisteredTopic {  get; set; } = string.Empty;
             public string PatientRegisterTopic { get; set; } = string.Empty;
+            public string IdentityConfirmedTopic {  get; set; } = string.Empty;
 
     }
 

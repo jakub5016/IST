@@ -65,6 +65,17 @@ builder.Services.AddMassTransit(x => {
                     t.ReplicationFactor = 1;
                 });
             });
+            k.TopicEndpoint<IdentityConfirmed>(kafkaOptions.IdentityConfirmed, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = AutoOffsetReset.Latest;
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
             k.TopicEndpoint<RegisterCommand>(kafkaOptions.PatientRegisterTopic, "r", e =>
             {
                 e.EnableAutoOffsetStore = true;
