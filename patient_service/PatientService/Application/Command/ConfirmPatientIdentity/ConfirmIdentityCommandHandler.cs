@@ -2,6 +2,7 @@
 using MassTransit;
 using PatientService.Domain;
 using PatientService.Domain.Shared;
+using PatientService.Infrastracture.Messaging.IntegrationEvents;
 
 namespace PatientService.Application.Command.ConfirmPatientIdentity
 {
@@ -9,11 +10,13 @@ namespace PatientService.Application.Command.ConfirmPatientIdentity
     {
         private readonly IPacientRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITopicProducer<IdentityConfirmed> _publisher;
 
-        public ConfirmIdentityCommandHandler(IPacientRepository repository, IUnitOfWork unitOfWork)
+        public ConfirmIdentityCommandHandler(IPacientRepository repository, IUnitOfWork unitOfWork, ITopicProducer<IdentityConfirmed> publisher)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _publisher = publisher;
         }
 
         public async Task Consume(ConsumeContext<ConfirmIdentityCommand> context)
@@ -29,6 +32,7 @@ namespace PatientService.Application.Command.ConfirmPatientIdentity
                 }
                 patient.ConfirmIdentity();
                 await _unitOfWork.SaveChangesAsync();
+                await _publisher.Produce(new IdentityConfirmed(req.PatientId));
                 await context.RespondAsync(Result.Success());
             }
             catch (Exception ex)
