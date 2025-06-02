@@ -17,6 +17,10 @@ from visits.serializers import DoctorScheduleChangeSerializer
 
 from kafka_handle.kafka_handle import send_message
 
+import logging
+
+logging.basicConfig(filemode="a", filename="kafka_logs.log", level=logging.INFO)
+logger = logging.getLogger()
 NEW_APPOINTMENT_TOPIC = os.getenv("NEW_APPOINTMENT_TOPIC", "new_appointment")
 APPOINTMENT_CANCELED_TOPIC = os.getenv(
     "APPOINTMENT_CANCELED_TOPIC", "appointment_cancelled"
@@ -61,11 +65,13 @@ def doctor_schedule(request):
 def appointment(request):
     related_id = request.headers.get("x-jwt-related-id")
     role = request.headers.get("x-jwt-role")
+    identity_confirmed = request.headers.get("x-jwt-identity-confirmed") == "true"
+
     if request.method == "POST":
         data = request.data.copy()
         try:
             data = validate_appointment_permissions_data(
-                request.data.copy(), role, related_id
+                request.data.copy(), role, related_id, identity_confirmed
             )
         except AuthenticationFailed as e:
             return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)

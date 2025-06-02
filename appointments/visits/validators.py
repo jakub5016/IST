@@ -9,15 +9,23 @@ from visits.models import Appointment, DoctorSchedule, UsersMapping
 
 
 def validate_appointment_permissions_data(
-    data: dict, role: str, related_id: uuid.UUID
+    data: dict, role: str, related_id: uuid.UUID, identity_confirmed: bool
 ) -> dict:
     if role == "patient":
         if "patient_id" in data and data["patient_id"] != str(related_id):
             raise AuthenticationFailed(
                 "Cannot create a meeting with a different patient."
             )
+
         if "doctor_id" not in data:
             raise ValidationError("Field 'doctor_id' is required.")
+
+        if not identity_confirmed:
+            if len(Appointment.objects.filter(patient_id=related_id)) > 1:
+                raise ValidationError(
+                    "Cannot create more than one appointment if user identity is not confirmed"
+                )
+
         data["patient_id"] = str(related_id)
     elif role == "doctor":
         if "doctor_id" in data and data["doctor_id"] != str(related_id):

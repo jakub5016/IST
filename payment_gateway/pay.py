@@ -9,6 +9,7 @@ PAYU_AUTH_URL = "https://secure.snd.payu.com/pl/standard/user/oauth/authorize"
 PAYU_ORDER_ADD_URL = "https://secure.snd.payu.com/api/v2_1/orders"
 PAYU_ORDER_GET_URL = "https://secure.snd.payu.com/api/v2_1/orders/{orderId}"
 PAYU_REFUND_URL = "https://secure.snd.payu.com/api/v2_1/orders/{orderId}/refunds"
+PAYU_CANCEL_URL = "https://secure.snd.payu.com/api/v2_1/orders/{orderId}"
 
 logger = logging.getLogger()
 logging.basicConfig(filename="myapp.log", level=logging.INFO)
@@ -86,6 +87,20 @@ def refund_order(orderId):
 
     if response.status_code == 200:
         return dict(response.json())
+    else:
+        print(response.text)
+        return None
+
+
+def cancel_order(orderId):
+    access_token = get_access_token()
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = requests.delete(PAYU_CANCEL_URL.format(orderId=orderId), headers=headers)
+    if response.status_code == 200:
+        return dict(response.json()).get("status")
     else:
         print(response.text)
         return None
