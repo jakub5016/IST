@@ -40,6 +40,8 @@ namespace DocumentService.Application.Documents.Commands.UploadDocument
                         appointment!.Id,
                         url,
                         appointment.AppointmentType,
+                        appointment.StartTime,
+                        appointment.EndTime,
                         appointment.PatientEmail,
                         appointment.DoctorEmail,
                         appointment.Price

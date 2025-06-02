@@ -4,6 +4,8 @@
         Guid AppointmentId,
         string Url,
         string AppointmentType,
+        DateTime StartTime,
+        DateTime EndTime,
         string PatientEmail,
         string DoctorEmail,
         int Price
