@@ -6,6 +6,7 @@ using EmployeeService.Application.Queries.GetById;
 using EmployeeService.Application.Queries.GetDoctors;
 using EmployeeService.Application.Queries.GetEmployees;
 using EmployeeService.Domain;
+using EmployeeService.Domain.Event;
 using EmployeeService.Infrastracture.Database;
 using EmployeeService.Infrastracture.Messaging;
 using FluentValidation;
@@ -45,6 +46,8 @@ builder.Services.AddMassTransit(x => {
     x.AddRider(rider =>
     {
         rider.AddProducer<EmployeeHired>(kafkaOptions.EmployeeHiredTopic);
+        rider.AddProducer<EmployeeDismissed>(kafkaOptions.EmployeeHiredTopic);
+
         rider.AddProducer<CancelEmploymentCommand>(kafkaOptions.EmployeeRegistrationFailedTopic);
 
         rider.AddConsumer<CancelEmploymentCommandHandler>();
@@ -57,6 +60,17 @@ builder.Services.AddMassTransit(x => {
                 e.UseRawJsonDeserializer();
                 e.AutoOffsetReset = AutoOffsetReset.Latest;
                 e.ConfigureConsumer<CancelEmploymentCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
+            k.TopicEndpoint<EmployeeDismissed>(kafkaOptions.EmployeeDismissedTopic, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = AutoOffsetReset.Latest;
                 e.CreateIfMissing(t =>
                 {
                     t.NumPartitions = 1;

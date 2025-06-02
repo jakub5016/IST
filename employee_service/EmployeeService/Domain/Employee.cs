@@ -11,6 +11,7 @@
         public TimeOnly ShiftStartTime { get; set; }
         public TimeOnly ShiftEndTime { get; set; }
         public Doctor? Doctor { get; set; }
+        public Role GetRole() => Doctor is null ? Role.Employee : Role.Doctor;
         public static Employee Hire(string firstName, string lastName, string phoneNumber, string email, TimeOnly shiftStartTime, TimeOnly shiftEndTime, Role role, string specialization = "", int room = 0)
         {
             var id = Guid.NewGuid();

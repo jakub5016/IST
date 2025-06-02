@@ -7,6 +7,7 @@
         public string ServerAddress { get; set; } = string.Empty;
         public string EmployeeHiredTopic { get; set; } = string.Empty;
         public string EmployeeRegistrationFailedTopic { get; set; } = string.Empty;
+        public string EmployeeDismissedTopic {  get; set; } = string.Empty;
 
     }
 }
