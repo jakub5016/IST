@@ -2,32 +2,39 @@ import uuid
 from django.db import models
 
 APPOINTMENT_STATUS_CHOICES = [
-    ('scheduled', 'Scheduled'),
-    ('finished', 'Finished'),
-    ('canceled', 'Canceled'),
+    ("scheduled", "Scheduled"),
+    ("finished", "Finished"),
+    ("canceled", "Canceled"),
 ]
 
 ROLE_NAMES = [
     ("patient", "patient"),
     ("doctor", "doctor"),
     ("employee", "employee"),
-    ("admin", "admin")
+    ("admin", "admin"),
 ]
 
-ROLE_NAMES_LIST = ['patient', 'doctor', 'employee', 'admin']
+ROLE_NAMES_LIST = ["patient", "doctor", "employee", "admin"]
+
 
 class UsersMapping(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    role = models.CharField(max_length=16, choices=ROLE_NAMES, default=ROLE_NAMES_LIST[0])
-    email = models.EmailField(unique=True)
+    role = models.CharField(
+        max_length=16, choices=ROLE_NAMES, default=ROLE_NAMES_LIST[0]
+    )
+    email = models.EmailField(unique=True, null=True, blank=True)
 
 
 class DoctorSchedule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    weekday = models.IntegerField(db_index=True, null=False)
+    weekday = models.IntegerField(db_index=True, null=False, unique=True)
     start_time = models.TimeField(db_index=True, null=False)
     end_time = models.TimeField(db_index=True, null=False)
     doctor_id = models.UUIDField(null=False)
+
+    class Meta:
+        unique_together = ["weekday", "id"]
+
 
 class AppointmentType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -35,6 +42,7 @@ class AppointmentType(models.Model):
     duration_minutes = models.IntegerField(db_index=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, db_index=True)
     is_online = models.BooleanField(db_index=True)
+
 
 class Appointment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -45,3 +53,11 @@ class Appointment(models.Model):
     doctor_id = models.UUIDField(null=False)
     appointment_type = models.ForeignKey(AppointmentType, on_delete=models.CASCADE)
     zoom_link = models.TextField(null=True, blank=True)
+
+
+class ForbiddenUUID(models.Model):
+    """
+    UUID recived from kafka but absent in databasse
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)

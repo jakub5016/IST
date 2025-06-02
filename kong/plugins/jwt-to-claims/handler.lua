@@ -32,6 +32,7 @@ function JwtToClaims:access(conf)
     is_confirmed_email = "x-jwt-is-confirmed-email",
     related_id         = "x-jwt-related-id",
     role               = "x-jwt-role",
+    identity_confirmed = "x-jwt-identity-confirmed"
   }
 
   for claim_key, header_name in pairs(headers_to_set) do

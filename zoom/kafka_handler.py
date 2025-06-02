@@ -54,7 +54,7 @@ def kafka_consumer_listener(consumer, producer):
             appointment = message.value
             logger.info(f"Received appointment: {appointment}")
 
-            if not appointment.get("is_online"):
+            if not appointment.get("isOnline"):
                 logger.info(f"Visit {appointment['appointment_id']} is not online visit.")
                 continue
 
