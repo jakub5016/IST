@@ -1,4 +1,4 @@
-﻿namespace EmailService.Configuration
+﻿namespace EmailService.Infrastracture.Notification.Configuration
 {
     public class SMTPOptions
     {

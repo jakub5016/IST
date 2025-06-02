@@ -176,6 +176,8 @@ services:
       - SMTP__From=AngioCard
       - SMTP__Password=${SMTP_PASSWORD}
       - SMTP__PORT=587
+      - Database__ConnectionString=mongodb://mongodb:27017
+      - Database__DatabaseName=database
     volumes:
       - ./email_service/EmailService/Templates:/app/Templates
     depends_on:

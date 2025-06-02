@@ -1,4 +1,4 @@
-﻿namespace EmailService.TemplateLoader
+﻿namespace EmailService.Infrastracture.Email.TemplateLoader
 {
     public interface ITemplateLoader
     {

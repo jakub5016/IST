@@ -1,4 +1,4 @@
-﻿namespace EmailService.Configuration
+﻿namespace EmailService.Infrastracture.Messaging.Configuration
 {
     public class KafkaOptions
     {

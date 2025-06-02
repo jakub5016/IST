@@ -1,10 +1,10 @@
-﻿using EmailService.Configuration;
-using EmailService.Events;
+﻿using EmailService.Application.Events;
+using EmailService.Infrastracture.Messaging.Configuration;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace EmailService.Controllers
+namespace EmailService.API
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -14,10 +14,10 @@ namespace EmailService.Controllers
         private readonly KafkaOptions _options =  options.Value;
 
         [HttpPost("sendWelcomeEmail")]
-        public async Task<IActionResult> TestSendingWelcomeEmail(string username, string activationLink, string email)
+        public async Task<IActionResult> TestSendingWelcomeEmail(Guid patientId, string username, string activationLink, string email)
         {
             var producer = _topicProvider.GetProducer<UserRegistred>(new Uri($"topic:{_options.UserRegistredTopic}"));
-            await producer.Produce(new UserRegistred(username, activationLink, email));
+            await producer.Produce(new UserRegistred(patientId, username, activationLink, email));
             return Accepted();
         }
         [HttpPost("sendPasswordChangeEmail")]

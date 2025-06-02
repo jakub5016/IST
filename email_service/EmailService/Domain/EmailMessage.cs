@@ -1,4 +1,4 @@
-﻿namespace EmailService.Models
+﻿namespace EmailService.Domain
 {
     public class EmailMessage
     {
