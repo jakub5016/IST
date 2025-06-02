@@ -1,4 +1,4 @@
-﻿using DocumentService.Domain;
+﻿using DocumentService.Domain.Documents;
 using Microsoft.EntityFrameworkCore;
 
 namespace DocumentService.Infrastracture.Database
@@ -14,7 +14,7 @@ namespace DocumentService.Infrastracture.Database
 
         public async Task AddDocument(Document document)
         {
-            await _context.Documents.AddAsync(document);    
+            await _context.Documents.AddAsync(document);
             await _context.SaveChangesAsync();
         }
 
@@ -23,10 +23,10 @@ namespace DocumentService.Infrastracture.Database
             return await _context.Documents.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<List<Document>> GetDocumentsAsync(Guid appointmentId)
+        public async Task<List<Document>> GetDocuments(Guid appointmentId)
         {
-           return await _context.Documents.Where(x => x.AppointmentId == appointmentId)
-                .ToListAsync();
+            return await _context.Documents.Where(x => x.AppointmentId == appointmentId)
+                 .ToListAsync();
         }
     }
 }
