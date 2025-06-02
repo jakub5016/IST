@@ -80,7 +80,7 @@ namespace PatientService.API
             var response = await client.GetResponse<Result<PatientResponse>>(new(id));
             return response.Message.IsSuccess ? Ok(response.Message.Value) : NoContent();
         }
-        [RoleCheck(Roles.Employee)]
+        //[RoleCheck(Roles.Employee)]
         [HttpPut("{id}/confirm-identity")]
         public async Task<IActionResult> ConfirmIdentityAsync(Guid id)
         {

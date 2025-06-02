@@ -47,9 +47,9 @@ builder.Services.AddMassTransit(x => {
         var kafkaOptions = builder.Configuration.GetSection("Kafka").Get<KafkaOptions>();
         rider.AddProducer<PatientRegistered>(kafkaOptions.PatientRegisteredTopic);
         rider.AddProducer<UserCreationFailed>(kafkaOptions.UserCreationFailedTopic);
+        rider.AddProducer<IdentityConfirmed>(kafkaOptions.IdentityConfirmedTopic);
         rider.AddConsumer<CancelRegistrationCommandHandler>();
         rider.AddConsumer<RegisterCommandHandler>();
-        rider.AddConsumer<ConfirmIdentityCommandHandler>();
 
         rider.UsingKafka((context, k) =>
         {
