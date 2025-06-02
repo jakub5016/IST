@@ -49,6 +49,7 @@ builder.Services.AddMassTransit(x => {
         rider.AddProducer<UserCreationFailed>(kafkaOptions.UserCreationFailedTopic);
         rider.AddConsumer<CancelRegistrationCommandHandler>();
         rider.AddConsumer<RegisterCommandHandler>();
+        rider.AddConsumer<ConfirmIdentityCommandHandler>();
 
         rider.UsingKafka((context, k) =>
         {
@@ -65,7 +66,7 @@ builder.Services.AddMassTransit(x => {
                     t.ReplicationFactor = 1;
                 });
             });
-            k.TopicEndpoint<IdentityConfirmed>(kafkaOptions.IdentityConfirmed, "r", e =>
+            k.TopicEndpoint<IdentityConfirmed>(kafkaOptions.IdentityConfirmedTopic, "r", e =>
             {
                 e.EnableAutoOffsetStore = true;
                 e.UseRawJsonDeserializer();
