@@ -22,7 +22,7 @@ class Command(BaseCommand):
             print("Superuser already exists.")
 
         try:
-            User.objects.create(
+            User.objects.create_user(
                 email="pani.kasia@example.com",
                 password=password,
                 related_id='1d01419d-ac22-446e-b520-f51795a375c0',

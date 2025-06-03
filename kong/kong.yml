@@ -7,19 +7,6 @@ services:
       - name: auth-route
         paths:
           - /auth
-  - name: payment-service
-    url: "http://payment_service:8088"
-    routes:
-      - name: payment-route
-        paths:
-          - /payment
-        
-        plugins:
-          - name: jwt
-            config:
-              claims_to_verify:
-                - exp
-          - name: jwt-to-claims
 
   - name: appointments-service
     url: "http://appointments:8081"
@@ -90,6 +77,20 @@ services:
         paths:
           - /employee
 
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+          - name: jwt-to-claims
+          
+  - name: payment-service
+    url: "http://payment-service:8088"
+    routes:
+      - name: payment-route
+        paths:
+          - /payment
+        
         plugins:
           - name: jwt
             config:

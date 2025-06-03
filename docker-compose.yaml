@@ -118,6 +118,8 @@ services:
       - PATIENT_REGISTERED_TOPIC=${PATIENT_REGISTERED_TOPIC}
       - EMPLOYEE_HIRED_TOPIC=${EMPLOYEE_HIRED_TOPIC}
       - PASSWORD_CHANGED_TOPIC=${PASSWORD_CHANGED_TOPIC}
+      - USER_CREATION_FAILED_TOPIC=${USER_CREATION_FAILED_TOPIC}
+      - IDENTITY_CONFIRMED_TOPIC=${IDENTITY_CONFIRMED_TOPIC}
     depends_on:
       - auth-db
       - kafka
@@ -140,7 +142,7 @@ services:
       - iot
   payment-service:
     build: ./payment_service
-    container_name: payment_service
+    container_name: payment-service
     ports:
       - "8088:8088"
     depends_on:
@@ -239,6 +241,7 @@ services:
       - Kafka__UserCreationFailedTopic=${USER_CREATION_FAILED_TOPIC}
       - Kafka__PatientRegisterTopic=${PATIENT_REGISTER_TOPIC}
       - Kafka__PatientRegisteredTopic=${PATIENT_REGISTERED_TOPIC}
+      - Kafka__IdentityConfirmedTopic=${IDENTITY_CONFIRMED_TOPIC}
       - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
     depends_on:
       - kafka
