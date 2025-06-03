@@ -258,7 +258,8 @@ services:
     environment:
       - Kafka__ServerAddress=kafka:29092
       - Kafka__EmployeeHiredTopic=${EMPLOYEE_HIRED_TOPIC}
-      - Kafka__EmployeeRegistrationFailedTopic=${EMPLOYEE_REGISTRATION_FAILED_TOPIC}
+      - Kafka__EmployeeRegistrationFailedTopic=${USER_CREATION_FAILED_TOPIC}
+      - Kafka__EmployeeDismissedTopic=${EMPLOYEE_FIRED_TOPIC}
       - ConnectionStrings__DataConnection=Host=patient-db;Port=5434;Username=patient_user;Password=secret;Database=patientdb
     depends_on:
       - kafka

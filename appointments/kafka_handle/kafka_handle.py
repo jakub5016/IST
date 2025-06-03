@@ -27,6 +27,7 @@ APPOINTMENT_CANCELED_TOPIC = os.getenv(
 USER_CREATION_FAILED_TOPIC = os.getenv(
     "USER_CREATION_FAILED_TOPIC", "user_creation_failed"
 )
+EMPLOYEE_DISMISSED_TOPIC = os.getenv("EMPLOYEE_DISMISSED_TOPIC", "employee_fired")
 
 
 def create_producer():
@@ -57,6 +58,7 @@ def get_consumer_and_producer():
                     ZOOM_CREATED_TOPIC,
                     ZOOM_ERROR_TOPIC,
                     USER_CREATION_FAILED_TOPIC,
+                    EMPLOYEE_DISMISSED_TOPIC,
                 ]
             )
             break
@@ -171,6 +173,16 @@ def kafka_consumer_listener(consumer):
                     except UsersMapping.DoesNotExist:
                         logger.error(f"Patient with {patient_id} does not exist")
                         ForbiddenUUID.objects.create(id=patient_id)
+                elif topic == EMPLOYEE_DISMISSED_TOPIC:
+                    user_id = value.get("id")
+                    try:
+                        mapping = UsersMapping.objects.get(id=user_id)
+                    except UsersMapping.DoesNotExist:
+                        logger.error(
+                            f"User mapping with this id does not exist: {user_id}"
+                        )
+                    mapping.is_active = False
+                    mapping.save()
 
             except Exception as e:
                 logger.exception(f"Error processing Kafka message: {e}")

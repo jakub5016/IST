@@ -56,6 +56,8 @@ def validate_appointment_data(data):
         raise NotFound("Patient with this ID not found")
     try:
         doctor = UsersMapping.objects.get(id=data["doctor_id"])
+        if not doctor.is_active:
+            raise ValidationError("Cannot create a new appointemt with this doctor")
     except UsersMapping.DoesNotExist:
         raise NotFound("Doctor with this ID not found")
 

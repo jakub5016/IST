@@ -46,7 +46,7 @@ builder.Services.AddMassTransit(x => {
     x.AddRider(rider =>
     {
         rider.AddProducer<EmployeeHired>(kafkaOptions.EmployeeHiredTopic);
-        rider.AddProducer<EmployeeDismissed>(kafkaOptions.EmployeeHiredTopic);
+        rider.AddProducer<EmployeeDismissed>(kafkaOptions.EmployeeDismissedTopic);
 
         rider.AddProducer<CancelEmploymentCommand>(kafkaOptions.EmployeeRegistrationFailedTopic);
 
