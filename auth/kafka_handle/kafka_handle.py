@@ -132,13 +132,22 @@ def kafka_consumer_listener(consumer):
                     else:
                         logger.info("Email is missing in the message.")
             elif topic == IDENTITY_CONFIRMED_TOPIC:
-                patient_id = value.patientId
+                patient_id = value.get("patientId")
                 try:
-                    user = User.objects.get(related_id=patient_id)
-                    user.identity_confirmed = True
-                    user.save()
+                    unauthicated_user = User.objects.get(related_id=patient_id)
+                    unauthicated_user.identity_confirmed = True
+                    unauthicated_user.save()
+                    logger.info(
+                        f"Status of user {unauthicated_user.email} changed to {unauthicated_user.identity_confirmed}"
+                    )
                 except User.DoesNotExist:
+                    logger.info(
+                        "User does not exist in database, adding identity call to db"
+                    )
                     IdentityCall.objects.create(patient_id=patient_id)
+                except Exception as e:
+                    logger.error(e)
+
             elif topic == EMPLOYEE_HIRED_TOPIC:
                 email = value.get("email")
                 role = value.get("role")
