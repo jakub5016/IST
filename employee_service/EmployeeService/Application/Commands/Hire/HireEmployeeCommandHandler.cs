@@ -2,6 +2,7 @@
 using EmployeeService.Application.Queries.GetEmployees;
 using EmployeeService.Core;
 using EmployeeService.Domain;
+using EmployeeService.Domain.Event;
 using MassTransit;
 
 namespace EmployeeService.Application.Commands.Hire
@@ -29,7 +30,7 @@ namespace EmployeeService.Application.Commands.Hire
                     req.RoomNumber);
                 await _repository.Add(employee);
                 await _repository.SaveChangesAsync();
-                await _publisher.Produce(new EmployeeHired(employee.Id, employee.Email, req.Role.ToLower()));
+                await _publisher.Produce(new EmployeeHired(employee.Id, employee.Email, req.Role.ToLower(),req.ShiftStartTime,req.ShiftEndTime));
                 await context.RespondAsync(Result.Success());
             }
             catch (Exception ex)

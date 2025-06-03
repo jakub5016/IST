@@ -25,6 +25,7 @@ IDENTITY_CONFIRMED_TOPIC = os.getenv("IDENTITY_CONFIRMED_TOPIC", "identity_confi
 USER_CREATION_FAILED_TOPIC = os.getenv(
     "USER_CREATION_FAILED_TOPIC", "user_creation_failed"
 )
+EMPLOYEE_DISMISSED_TOPIC = os.getenv("EMPLOYEE_DISMISSED_TOPIC", "employee_fired")
 
 User = get_user_model()
 
@@ -60,6 +61,7 @@ def get_consumer_and_producer():
                     PATIENT_REGISTERED_TOPIC,
                     EMPLOYEE_HIRED_TOPIC,
                     IDENTITY_CONFIRMED_TOPIC,
+                    EMPLOYEE_DISMISSED_TOPIC,
                 ]
             )
             break
@@ -173,6 +175,16 @@ def kafka_consumer_listener(consumer):
                         logger.info(f"User with email {email} already exists.")
                 else:
                     logger.info("Email is missing in the message.")
+
+            elif topic == EMPLOYEE_DISMISSED_TOPIC:
+                related_id = value.get("id")
+                try:
+                    dismissed_user = User.objects.get(related_id=related_id)
+                except User.DoesNotExist:
+                    logger.error(f"There is no user with related id: {related_id}")
+
+                dismissed_user.is_active = False
+                dismissed_user.save()
 
             if user:
                 kafka_payload = {

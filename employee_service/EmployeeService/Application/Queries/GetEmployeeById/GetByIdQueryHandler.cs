@@ -21,6 +21,7 @@ namespace EmployeeService.Application.Queries.GetById
                     return;
                 }
                 var response = new GetEmployeeResponse(
+                    employee.Id,
                     employee.FirstName,
                     employee.LastName,
                     employee.Email,

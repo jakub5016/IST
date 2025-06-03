@@ -26,6 +26,7 @@ namespace EmployeeService.Application.Queries.GetDoctorById
                     return;
                 }
                 var response = new GetDoctorResponse(
+                    employee.Id,
                     employee.FirstName,
                     employee.LastName,
                     employee.Email,

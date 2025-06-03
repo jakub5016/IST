@@ -1,6 +1,7 @@
 ﻿using EmployeeService.Application.Queries.GetById;
 using EmployeeService.Core;
 using EmployeeService.Domain;
+using EmployeeService.Domain.Event;
 using MassTransit;
 
 namespace EmployeeService.Application.Commands.Dismiss
@@ -8,10 +9,12 @@ namespace EmployeeService.Application.Commands.Dismiss
     public class DismissCommandHandler : IConsumer<DismissCommand>
     {
         private readonly IEmployeeRepository _repository;
+        private readonly ITopicProducer<EmployeeDismissed> _producer;
 
-        public DismissCommandHandler(IEmployeeRepository repository)
+        public DismissCommandHandler(IEmployeeRepository repository, ITopicProducer<EmployeeDismissed> producer)
         {
             _repository = repository;
+            _producer = producer;
         }
 
         public async Task Consume(ConsumeContext<DismissCommand> context)
@@ -27,6 +30,7 @@ namespace EmployeeService.Application.Commands.Dismiss
                 }
                 employee.Dismiss();
                 await _repository.SaveChangesAsync();
+                await _producer.Produce(new EmployeeDismissed(employee.Id, employee.Email, employee.GetRole().ToString().ToLower(), employee.ShiftStartTime, employee.ShiftEndTime));
                 await context.RespondAsync(Result.Success());
             }
             catch (Exception ex) {

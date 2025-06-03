@@ -23,6 +23,7 @@ class UsersMapping(models.Model):
         max_length=16, choices=ROLE_NAMES, default=ROLE_NAMES_LIST[0]
     )
     email = models.EmailField(unique=True, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
 
 class DoctorSchedule(models.Model):

@@ -30,6 +30,7 @@ namespace EmployeeService.Application.Queries.GetDoctors
                 var response = new GetDoctorsResponse(
                     [.. employees
                     .Select(x => new GetDoctorResponse(
+                        x.Id,
                         x.FirstName,
                         x.LastName,
                         x.Email,

@@ -28,6 +28,7 @@ namespace EmployeeService.Application.Queries.GetEmployees
                 var response = new GetEmployeesResponse(
                     [.. employees
                     .Select(x => new GetEmployeeResponse(
+                        x.Id,
                         x.FirstName,
                         x.LastName,
                         x.Email,
