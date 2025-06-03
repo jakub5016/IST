@@ -1,13 +1,23 @@
-using EmailService.Commands;
-using EmailService.Configuration;
-using EmailService.Consumers;
-using EmailService.EmailSender;
-using EmailService.Events;
-using EmailService.TemplateLoader;
+using EmailService.Application.Commands;
+using EmailService.Application.Events;
+using EmailService.Domain;
+using EmailService.Infrastracture.Email.EmailSender;
+using EmailService.Infrastracture.Email.TemplateLoader;
+using EmailService.Infrastracture.EventStore;
+using EmailService.Infrastracture.EventStore.Configuration;
+using EmailService.Infrastracture.Messaging.Configuration;
+using EmailService.Infrastracture.Notification.Configuration;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
-
+BsonClassMap.RegisterClassMap<UserRegistred>();
+var objectSerializer = new ObjectSerializer(ObjectSerializer.AllAllowedTypes);
+BsonSerializer.RegisterSerializer(objectSerializer);
 builder.Configuration
           .SetBasePath(Directory.GetCurrentDirectory())
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -18,10 +28,26 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<SMTPOptions>(builder.Configuration.GetSection(SMTPOptions.SMTP));
 builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection(KafkaOptions.KAFKA));
+builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection(MongoDBSettings.MONGO));
+var mongoDBSettings = builder.Configuration.GetSection(MongoDBSettings.MONGO).Get<MongoDBSettings>();
+
+
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDBSettings>>().Value;
+    return client.GetDatabase(settings.DatabaseName);
+});
 
 builder.Services.AddScoped<ITemplateLoader, TemplateLoader>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
+builder.Services.AddScoped<IEventStoreHandler, EventStoreHandler>();
 builder.Services.AddMassTransit(x =>
 {
     x.UsingInMemory();

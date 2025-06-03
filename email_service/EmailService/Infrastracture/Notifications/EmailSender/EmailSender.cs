@@ -1,10 +1,10 @@
-﻿using EmailService.Configuration;
-using EmailService.Models;
+﻿using EmailService.Domain;
+using EmailService.Infrastracture.Notification.Configuration;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace EmailService.EmailSender
+namespace EmailService.Infrastracture.Email.EmailSender
 {
     public class EmailSender(IOptions<SMTPOptions> options) : IEmailSender
     {

@@ -1,6 +1,6 @@
-﻿using EmailService.Models;
+﻿using EmailService.Domain;
 
-namespace EmailService.EmailSender
+namespace EmailService.Infrastracture.Email.EmailSender
 {
     public interface IEmailSender
     {
