@@ -196,6 +196,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - AWS_REGION=us-east-1
+      - Kafka__ServerAddress=kafka:29092
+      - Kafka__DocumentCreatedTopic=${DOCUMENT_CREATED_TOPIC}
+      - Kafka__FinishAppointmentTopic=${FINISH_APPOINTMENT_TOPIC}
     depends_on:
       - patient-db
     networks:

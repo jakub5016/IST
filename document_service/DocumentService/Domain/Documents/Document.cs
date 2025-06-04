@@ -1,4 +1,4 @@
-﻿namespace DocumentService.Domain
+﻿namespace DocumentService.Domain.Documents
 {
     public class Document(Guid appointmentId, string name, DateTime createdDate)
     {
