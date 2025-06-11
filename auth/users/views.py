@@ -1,11 +1,14 @@
 import os
+import random
 import jwt
 import datetime
 import requests
+import logging
 
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.db import transaction
+from django.contrib.auth import get_user_model
 from users.models import CustomUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,12 +16,24 @@ from rest_framework import status
 
 from kafka_handle.kafka_handle import send_message
 
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import LoginSerializer
 from .models import ChangePasswordCode
+
+User = get_user_model()
+logging.basicConfig(filemode="a", filename="kafka_logs.log", level=logging.INFO)
+logger = logging.getLogger()
 
 JWT_ALGORITHM = "HS256"
 JWT_EXP_DELTA_SECONDS = 36000  # 10h
 USER_REGISTER_TOPC = os.getenv("USER_REGISTER_TOPC", "user_registred")
+PATIENT_REGISTERED_TOPIC = os.getenv("PATIENT_REGISTERED_TOPIC", "patient_registred")
+EMPLOYEE_HIRED_TOPIC = os.getenv("EMPLOYEE_HIRED_TOPIC", "employee_hired")
+PASSWORD_CHANGED_TOPIC = os.getenv("PASSWORD_CHANGED_TOPIC", "password_changed")
+IDENTITY_CONFIRMED_TOPIC = os.getenv("IDENTITY_CONFIRMED_TOPIC", "identity_confirmed")
+USER_CREATION_FAILED_TOPIC = os.getenv(
+    "USER_CREATION_FAILED_TOPIC", "user_creation_failed"
+)
+EMPLOYEE_DISMISSED_TOPIC = os.getenv("EMPLOYEE_DISMISSED_TOPIC", "employee_fired")
 
 
 def generate_jwt_token(user):
@@ -71,6 +86,66 @@ class LoginView(APIView):
                 {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class RegisterExistingPatient(APIView):
+#     def post(self, request):
+#         data = request.data
+#         email = data.get("email")
+#         patient_id = data.get("patientId")
+#         password = data.get("password")
+#         foregin_id = patient_id
+#         if email and patient_id:
+#             if not User.objects.filter(email=email).exists():
+#                 call = IdentityCall.objects.filter(patient_id=patient_id).first()
+#                 if call:
+#                     identity_confirmed = True
+#                 else:
+#                     identity_confirmed = False
+#                 try:
+#                     with transaction.atomic():
+#                         patient_id = RelatedID.objects.get(id=patient_id)
+#                         user = User.objects.create_user(
+#                             email=email,
+#                             password=password,
+#                             related_id=patient_id,
+#                             identity_confirmed=identity_confirmed,
+#                         )
+#                         if call:
+#                             call.delete()
+#                         code = ChangePasswordCode.objects.create(
+#                             value=random.randint(0, 1000), user=user
+#                         )
+#                         logger.info(f"Code {code.value}")
+#                         send_message(
+#                             {
+#                                 "username": email,
+#                                 "email": email,
+#                                 "url": "localhost:8000/auth/change_password",
+#                                 "code": str(code.value),
+#                             },
+#                             PASSWORD_CHANGED_TOPIC,
+#                         )
+#                 except Exception as e:
+#                     logger.error(f"Error during user creation appeared: {e}")
+#                     return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 logger.info(f"User with email {email} already exists.")
+#                 return Response(
+#                     {"error": f"User with email {email} already exists."},
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
+#         kafka_payload = {
+#             "userId": str(user.id),
+#             "username": user.email,
+#             "activationLink": f"localhost:8000/auth/confirm_email?uuid={user.id}",
+#             "email": user.email,
+#             "role": user.role,
+#             "relatedId": foregin_id,
+#         }
+#         if not send_message(kafka_payload, USER_REGISTER_TOPC):
+#             raise Exception("Failed to send Kafka message")
+#         return Response({}, status=status.HTTP_201_CREATED)
 
 
 class ConfirmEmail(APIView):
