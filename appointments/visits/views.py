@@ -25,6 +25,7 @@ NEW_APPOINTMENT_TOPIC = os.getenv("NEW_APPOINTMENT_TOPIC", "new_appointment")
 APPOINTMENT_CANCELED_TOPIC = os.getenv(
     "APPOINTMENT_CANCELED_TOPIC", "appointment_cancelled"
 )
+APPOINTMENT_FINSHED_TOPIC = os.getenv("APPOINTMENT_FINSHED_TOPIC", "finish_appointment")
 
 
 @api_view(["GET"])
@@ -213,21 +214,22 @@ def appointment_status(request, appointment_id):
     start_iso = appointment.start_time.isoformat().replace("+00:00", "Z")
     end_iso = appointment.end_time.isoformat().replace("+00:00", "Z")
 
+    message_payload = {
+        "appointmentId": str(appointment.id),
+        "username": str(patient.email),
+        "appointmentType": str(appointment.appointment_type.type_name),
+        "startTime": str(start_iso),
+        "endTime": str(end_iso),
+        "patientId": str(appointment.patient_id),
+        "patientEmail": str(patient.email),
+        "doctorEmail": str(doctor.email),
+        "price": int(appointment.appointment_type.price),
+    }
+
     if new_status == "canceled":
-        send_message(
-            {
-                "appointmentId": str(appointment.id),
-                "username": str(patient.email),
-                "appointmentType": str(appointment.appointment_type.type_name),
-                "startTime": str(start_iso),
-                "endTime": str(end_iso),
-                "patientId": str(appointment.patient_id),
-                "patientEmail": str(patient.email),
-                "doctorEmail": str(doctor.email),
-                "price": int(appointment.appointment_type.price),
-            },
-            APPOINTMENT_CANCELED_TOPIC,
-        )
+        send_message(message_payload, APPOINTMENT_CANCELED_TOPIC)
+    elif new_status == "finished":
+        send_message(message_payload, APPOINTMENT_FINSHED_TOPIC)
 
     return Response(
         {"appointmentId": str(appointment.id), "status": new_status},

@@ -28,6 +28,7 @@ USER_CREATION_FAILED_TOPIC = os.getenv(
     "USER_CREATION_FAILED_TOPIC", "user_creation_failed"
 )
 EMPLOYEE_DISMISSED_TOPIC = os.getenv("EMPLOYEE_DISMISSED_TOPIC", "employee_fired")
+REFOUND_ERROR_TOPIC = os.getenv("REFOUND_ERROR_TOPIC", "refunded_payment_error")
 
 
 def create_producer():
@@ -59,6 +60,7 @@ def get_consumer_and_producer():
                     ZOOM_ERROR_TOPIC,
                     USER_CREATION_FAILED_TOPIC,
                     EMPLOYEE_DISMISSED_TOPIC,
+                    REFOUND_ERROR_TOPIC,
                 ]
             )
             break
@@ -183,7 +185,14 @@ def kafka_consumer_listener(consumer):
                         )
                     mapping.is_active = False
                     mapping.save()
-
+                elif topic == REFOUND_ERROR_TOPIC:
+                    appointemnt_uuid = value.get("uuid")
+                    try:
+                        appointment = Appointment.objects.get(id=appointemnt_uuid)
+                        appointment.status = "scheduled"
+                        appointment.save()
+                    except Appointment.DoesNotExist:
+                        pass
             except Exception as e:
                 logger.exception(f"Error processing Kafka message: {e}")
 

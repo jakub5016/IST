@@ -1,4 +1,5 @@
 from typing import Dict
+import uuid
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import NoBrokersAvailable
 from django.contrib.auth import get_user_model
@@ -114,6 +115,7 @@ def kafka_consumer_listener(consumer):
                                     logger.info(f"Code {code.value}")
                                     send_message(
                                         {
+                                            "id": str(uuid.uuid4()),
                                             "username": email,
                                             "email": email,
                                             "url": "localhost:8000/auth/change_password",
@@ -131,12 +133,23 @@ def kafka_consumer_listener(consumer):
                                 )
                         else:
                             logger.info(f"User with email {email} already exists.")
+                            send_message(
+                                {"patientId": patient_id},
+                                USER_CREATION_FAILED_TOPIC,
+                            )
+                            continue
                     else:
                         logger.info("Email is missing in the message.")
+                        send_message(
+                            {"patientId": patient_id},
+                            USER_CREATION_FAILED_TOPIC,
+                        )
+                        continue
+
             elif topic == IDENTITY_CONFIRMED_TOPIC:
                 patient_id = value.get("patientId")
                 try:
-                    unauthicated_user = User.objects.get(related_id=patient_id)
+                    unauthicated_user = User.objects.get(related_id__id=patient_id)
                     unauthicated_user.identity_confirmed = True
                     unauthicated_user.save()
                     logger.info(
@@ -166,11 +179,22 @@ def kafka_consumer_listener(consumer):
                             password=random_password,
                             role=role,
                             related_id=employee_id,
+                            is_confirmed_email=True,
                         )
                         code = ChangePasswordCode.objects.create(
                             value=random.randint(0, 1000), user=user
                         )
                         logger.info(f"Code {code.value}")
+                        send_message(
+                            {
+                                "id": str(uuid.uuid4()),
+                                "username": f"{email} - {user.id}",
+                                "email": email,
+                                "url": "localhost:8000/auth/change_password",
+                                "code": str(code.value),
+                            },
+                            PASSWORD_CHANGED_TOPIC,
+                        )
                     else:
                         logger.info(f"User with email {email} already exists.")
                 else:
@@ -179,7 +203,7 @@ def kafka_consumer_listener(consumer):
             elif topic == EMPLOYEE_DISMISSED_TOPIC:
                 related_id = value.get("id")
                 try:
-                    dismissed_user = User.objects.get(related_id=related_id)
+                    dismissed_user = User.objects.get(related_id__id=related_id)
                 except User.DoesNotExist:
                     logger.error(f"There is no user with related id: {related_id}")
 
@@ -188,6 +212,7 @@ def kafka_consumer_listener(consumer):
 
             if user:
                 kafka_payload = {
+                    "id": str(uuid.uuid4()),
                     "userId": str(user.id),
                     "username": user.email,
                     "activationLink": f"localhost:8000/auth/confirm_email?uuid={user.id}",

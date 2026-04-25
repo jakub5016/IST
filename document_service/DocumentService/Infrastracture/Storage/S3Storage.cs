@@ -1,7 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
-using DocumentService.Domain;
-using MassTransit.SqlTransport.Topology;
+using DocumentService.Domain.Documents;
 using Microsoft.Extensions.Options;
 
 namespace DocumentService.Infrastracture.Storage
@@ -30,7 +29,7 @@ namespace DocumentService.Infrastracture.Storage
 
         public async Task UploadFile(Stream file, string path)
         {
-           await _s3Client.UploadObjectFromStreamAsync(_awsOptions.BucketName, path, file, new Dictionary<string, object>());
+            await _s3Client.UploadObjectFromStreamAsync(_awsOptions.BucketName, path, file, new Dictionary<string, object>());
         }
     }
 }

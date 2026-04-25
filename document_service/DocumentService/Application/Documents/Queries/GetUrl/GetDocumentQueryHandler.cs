@@ -1,8 +1,8 @@
 ﻿using DocumentService.Application.Utils;
-using DocumentService.Domain;
+using DocumentService.Domain.Documents;
 using MassTransit;
 
-namespace DocumentService.Application.Queries.GetDocument
+namespace DocumentService.Application.Documents.Queries.GetDocument
 {
     public class GetDocumentQueryHandler : IConsumer<GetDocumentQuery>
     {
@@ -21,7 +21,7 @@ namespace DocumentService.Application.Queries.GetDocument
             try
             {
                 var document = await _repository.GetDocumentById(req.Id);
-                if (document == null)
+                if (document is null)
                 {
                     await context.RespondAsync(Result<GetDocumentUrlResponse>.Failure(new Error("404", "Not found")));
                     return;

@@ -1,3 +1,4 @@
+using DocumentService.Domain.Documents;
 using EmailService.Application.Commands;
 using EmailService.Application.Events;
 using EmailService.Domain;
@@ -57,11 +58,25 @@ builder.Services.AddMassTransit(x =>
         rider.AddConsumer<SendPasswordChangeEmailCommandHandler>();
         rider.AddConsumer<SendNewAppointmentEmailCommandHandler>();
         rider.AddConsumer<SendCancelAppointmentEmailCommandHandler>();
+        rider.AddConsumer<SendDocumentEmailCommandHandler>();
         rider.AddConsumer<SendZoomMeetingEmailCommandHandler>();
         rider.UsingKafka((context, k) =>
         {
             var host = builder.Configuration.GetSection("Kafka").GetSection("ServerAddress").Value;
             k.Host(host);
+
+            k.TopicEndpoint<DocumentCreated>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("DocumentCreatedTopic").Value, "r", e =>
+            {
+                e.EnableAutoOffsetStore = true;
+                e.UseRawJsonDeserializer();
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Latest;
+                e.ConfigureConsumer<SendDocumentEmailCommandHandler>(context);
+                e.CreateIfMissing(t =>
+                {
+                    t.NumPartitions = 1;
+                    t.ReplicationFactor = 1;
+                });
+            });
 
             k.TopicEndpoint<UserRegistred>(builder.Configuration.GetSection(KafkaOptions.KAFKA).GetSection("UserRegistredTopic").Value, "r", e =>
             {

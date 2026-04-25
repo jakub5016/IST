@@ -1,4 +1,4 @@
-﻿namespace DocumentService.Application.Queries.GetDocuments
+﻿namespace DocumentService.Application.Documents.Queries.GetDocuments
 {
     public record GetDocumentsResponse(List<GetDocumentResponse> documents);
 }
